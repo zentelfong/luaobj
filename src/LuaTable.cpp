@@ -32,26 +32,34 @@ bool LuaTable::isValid()
 
 LuaObject LuaTable::getTable(const char* key)
 {
-	assert(isValid());
-	return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	if(isValid())
+		return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	else
+		return luaNil;
 }
 
 LuaObject LuaTable::getTable(lua_Integer key)
 {
-	assert(isValid());
-	return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	if(isValid())
+		return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	else
+		return luaNil;
 }
 
 LuaObject LuaTable::operator[](const char* key)
 {
-	assert(isValid());
-	return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	if(isValid())
+		return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	else
+		return luaNil;
 }
 
 LuaObject LuaTable::operator[](lua_Integer idx)
 {
-	assert(isValid());
-	return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,idx);
+	if(isValid())
+		return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,idx);
+	else
+		return luaNil;
 }
 
 bool LuaTable::setTable(const char* key,LuaObject val)
