@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "LuaCommon.h"
 #include "LuaObject.h"
 #include "LuaTable.h"
@@ -53,7 +53,7 @@ public:
 
 	virtual void error(const char* errorMsg,...);
 
-	//´´½¨¶à¸ö²ÎÊı
+	//åˆ›å»ºå¤šä¸ªå‚æ•°
 	LuaTable newTable();
 
 

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "LuaCommon.h"
 #include "LuaObject.h"
 #include "LuaStack.h"
@@ -11,10 +11,10 @@ public:
 	LuaTable(const LuaObject& rfs);
 	LuaTable(const LuaTable& rfs);
 
-	//ÅĞ¶ÏÊÇ·ñÊÇlua±í
+	//åˆ¤æ–­æ˜¯å¦æ˜¯luaè¡¨
 	bool isValid();
 
-	//lua±í²Ù×÷
+	//luaè¡¨æ“ä½œ
 	LuaObject getTable(const char* key);
 	LuaObject getTable(lua_Integer idx);
 

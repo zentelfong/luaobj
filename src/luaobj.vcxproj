@@ -90,6 +90,7 @@
     <ClInclude Include="LuaClass.h" />
     <ClInclude Include="malloc\dlmalloc.h" />
     <ClInclude Include="MemPool.h" />
+    <ClInclude Include="Utf.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LuaBind.cpp" />
@@ -102,6 +103,7 @@
     <ClCompile Include="LuaTable.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="malloc\dlmalloc.c" />
+    <ClCompile Include="Utf.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

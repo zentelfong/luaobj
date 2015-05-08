@@ -4,13 +4,13 @@ LuaManager s_LuaManager;
 
 LuaManager::LuaManager(void)
 {
-	m_key=TlsAlloc();
+	TLSALLOC(&m_key);
 }
 
 
 LuaManager::~LuaManager(void)
 {
-	 TlsFree(m_key);
+	 TLSFREE(m_key);
 }
 
 
@@ -21,12 +21,12 @@ LuaManager* LuaManager::instance()
 
 LuaEngine* LuaManager::current()
 {
-	return static_cast<LuaEngine *>(TlsGetValue(m_key));
+	return static_cast<LuaEngine *>(TLSGET(m_key));
 }
 
 void LuaManager::setCurrent(LuaEngine* engine)
 {
-	TlsSetValue(m_key, engine);
+	TLSSET(m_key, engine);
 }
 
 

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "LuaCommon.h"
 #include "LuaObject.h"
@@ -25,7 +25,7 @@
 			return LuaObject::objFromIndex(getCppLuaState(),lua_gettop(L));\
 		}
 
-//µ÷ÓÃluaº¯ÊýÊ¹ÓÃ
+//è°ƒç”¨luaå‡½æ•°ä½¿ç”¨,å¦‚æžœè„šæœ¬é”™è¯¯ä¼šæŠ›å‡ºC++å¼‚å¸¸
 class LuaFunction:public LuaObject
 {
 public:

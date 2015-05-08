@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <stdint.h>
 #include "LuaStateOwner.h"
 
@@ -10,38 +10,20 @@ public:
 	LuaManager(void);
 	~LuaManager(void);
 
-	static LuaManager* instance();//È«¾Ö
-	LuaEngine* current();//»ñÈ¡µ±Ç°Ïß³ÌµÄluaÒýÇæ,Èç¹ûµ±Ç°Ïß³ÌÃ»ÓÐÊ¹ÓÃÔò·µ»ØNULL
+	static LuaManager* instance();//å…¨å±€
+	LuaEngine* current();//èŽ·å–å½“å‰çº¿ç¨‹çš„luaå¼•æ“Ž,å¦‚æžœå½“å‰çº¿ç¨‹æ²¡æœ‰ä½¿ç”¨åˆ™è¿”å›žNULL
 
 private:
 	friend class LuaEngine;
 	void setCurrent(LuaEngine* engine);
-	uint32_t m_key;
+	TLSVAR m_key;
 };
 
 
-//luaÒýÇæ
+//luaå¼•æ“Ž
 class LuaEngine:public LuaStateOwner
 {
 public:
 	LuaEngine();
 	~LuaEngine();
-
-	//ÆäËûÀ©Õ¹
-
 };
-
-
-/*
-int threadFunc(void* d)
-{
-	LuaEngine engine;
-
-	//Ö®ºó¿ÉÒÔÔÚÏß³ÌÄÚÊ¹ÓÃ»ñÈ¡µ±Ç°Ïß³ÌµÄluaÒýÇæ
-	LuaEngine* lua=LuaManager::instance()->current()
-
-
-}
-
-
-*/

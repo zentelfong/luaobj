@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "LuaCommon.h"
 
 
@@ -37,7 +37,7 @@ private:
 
 	LuaObjectStack* m_lstack;
 	int m_ref;
-	int m_index;//-1±íÊ¾Î´³õÊ¼»¯
+	int m_index;//-1è¡¨ç¤ºæœªåˆå§‹åŒ–
 };
 
 
@@ -63,7 +63,7 @@ public:
 	}
 
 
-	//Ñ¹ÈëcÕ»±£´æ
+	//å‹å…¥cæ ˆä¿å­˜
 	LuaObjectData* push(int luaidx)
 	{
 		if (++m_top>m_size)
@@ -83,7 +83,7 @@ public:
 		{
 			if (data==&m_data[i])
 			{
-				lua_remove(m_ls,data->m_index);//´ÓluaÕ»ÖĞÒÆ³ı
+				lua_remove(m_ls,data->m_index);//ä»luaæ ˆä¸­ç§»é™¤
 				data->m_ref=0;
 				data->m_index=-1;
 				break;
@@ -177,7 +177,7 @@ public:
 	}
 
 
-	//´ÓÈ«¾Ö½øĞĞ³õÊ¼»¯
+	//ä»å…¨å±€è¿›è¡Œåˆå§‹åŒ–
 	LuaObjectData* createGetGlobal(const char* name)
 	{
 		lua_getglobal(m_ls,name);

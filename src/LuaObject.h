@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "LuaCommon.h"
 #include "LuaStack.h"
 
@@ -16,7 +16,7 @@ public:
 	int getIndex()const;
 
 
-	//ÀàĞÍÅĞ¶Ï
+	//ç±»å‹åˆ¤æ–­
 	const char* typeName()const;
 	int  getType()const;
 	bool isNumber()const;
@@ -43,12 +43,12 @@ public:
 	lua_State*   toThread()const;
 	const void*  toPointer()const;
 
-	size_t		 objLen()const;//·µ»ØÊı×éµÄÔªËØ¸öÊı£¬×Ö·û´®µÄ³¤¶È£¬userdataËùÕ¼×Ö½ÚÊıµÈ
+	size_t		 objLen()const;//è¿”å›æ•°ç»„çš„å…ƒç´ ä¸ªæ•°ï¼Œå­—ç¬¦ä¸²çš„é•¿åº¦ï¼Œuserdataæ‰€å å­—èŠ‚æ•°ç­‰
 
-	//²Ù×÷·û
+	//æ“ä½œç¬¦
 	LuaObject& operator=(const LuaObject& other);
 
-	//±È½Ï
+	//æ¯”è¾ƒ
 	bool operator==(lua_Integer n);
 	bool operator==(const char* s);
 
@@ -60,7 +60,7 @@ public:
 	bool setMetatable(LuaTable tab);
 	LuaTable getMetatable();
 
-	static LuaObject objFromIndex(LuaState* L,int idx);//·Ç½Ó¿Úº¯Êı
+	static LuaObject objFromIndex(LuaState* L,int idx);//éæ¥å£å‡½æ•°
 protected:
 	template<class T> friend  class LuaClass;
 

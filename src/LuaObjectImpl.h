@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #include "LuaCommon.h"
 
 
 class LuaObjectImpl
 {
 public:
-	//´´½¨
+	//åˆ›å»º
 	static LuaObjectImpl* createFromIndex(LuaState* L,int idx);
 	static LuaObjectImpl* createFromTop(LuaState* L);
 
@@ -35,7 +35,7 @@ public:
 
 	static LuaObjectImpl* createTable(LuaState* L);
 
-	//´ÓÈ«¾Ö½øĞĞ³õÊ¼»¯
+	//ä»å…¨å±€è¿›è¡Œåˆå§‹åŒ–
 	static LuaObjectImpl* createGetGlobal(LuaState* L,const char* name);
 
 	static LuaObjectImpl* createGetRegistery(LuaState* L,const char* key);
@@ -46,7 +46,7 @@ public:
 
 	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,lua_Integer key);
 
-	//ÊÍ·Å
+	//é‡Šæ”¾
 	void free();
 
 	int addRef()
@@ -80,7 +80,7 @@ public:
 private:
 	LuaState* m_ls;
 	int m_ref;
-	int m_index;//-1±íÊ¾Î´³õÊ¼»¯
+	int m_index;//-1è¡¨ç¤ºæœªåˆå§‹åŒ–
 };
 
 

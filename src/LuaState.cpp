@@ -1,4 +1,4 @@
-#include "LuaState.h"
+﻿#include "LuaState.h"
 #include "LuaObjectImpl.h"
 #include "LuaTable.h"
 #include "Utf.h"
@@ -6,7 +6,6 @@
 void LuaObjectStack::push(LuaObjectImpl* impl)
 {
 	m_data.push_back(impl);
-	//printf("push(%d,%d)\n",m_data.size(),impl->getIndex());
 }
 
 void LuaObjectStack::pop(LuaObjectImpl* impl)
@@ -21,8 +20,6 @@ void LuaObjectStack::pop(LuaObjectImpl* impl)
 		else
 			m_data[i]->decIndex();
 	}
-
-	//printf("pop(%d,%d)\n",m_data.size(),impl->getIndex());
 }
 
 

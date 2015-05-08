@@ -1,4 +1,4 @@
-#include "LuaObjectImpl.h"
+ï»¿#include "LuaObjectImpl.h"
 #include "LuaTable.h"
 #include "LuaState.h"
 
@@ -9,7 +9,7 @@ int LuaObjectImpl::callDelegate(lua_State* L)
 	LuaState LS(L);
 	{
 		LuaCFunction func =*((LuaCFunction*)(lua_touserdata(L, lua_upvalueindex(1))));
-		LuaTable args=LS.newTable();//Èë¿Ú²ÎÊı
+		LuaTable args=LS.newTable();//å…¥å£å‚æ•°
 
 		for (int i=1;i<=lua_gettop(L);++i)
 		{
@@ -49,7 +49,7 @@ int LuaObjectImpl::callDelegate(lua_State* L)
 
 LuaObjectImpl* LuaObjectImpl::createFromIndex(LuaState* L,int idx)
 {
-	//ÉêÇëÄÚ´æ
+	//ç”³è¯·å†…å­˜
 	void* pool=NULL;
 	lua_Alloc alloc=lua_getallocf(L->getLuaState(),(void**)&pool);
 	LuaObjectImpl* impl=(LuaObjectImpl*)alloc(pool,NULL,0,sizeof(LuaObjectImpl));
@@ -71,7 +71,7 @@ void LuaObjectImpl::free()
 {
 	m_ls->getStack()->pop(this);
 	lua_remove(getLuaState(),m_index);
-	//ÊÍ·ÅÄÚ´æ
+	//é‡Šæ”¾å†…å­˜
 	void* pool=NULL;
 	lua_Alloc alloc=lua_getallocf(getLuaState(),(void**)&pool);
 	alloc(pool,this,sizeof(LuaObjectImpl),0);
@@ -150,7 +150,7 @@ LuaObjectImpl* LuaObjectImpl::createTable(LuaState* L)
 }
 
 
-//´ÓÈ«¾Ö½øĞĞ³õÊ¼»¯
+//ä»å…¨å±€è¿›è¡Œåˆå§‹åŒ–
 LuaObjectImpl* LuaObjectImpl::createGetGlobal(LuaState* L,const char* name)
 {
 	lua_getglobal(L->getLuaState(),name);
