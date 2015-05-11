@@ -25,6 +25,17 @@ public:
 	LuaObject getGlobal(const char* name);
 	void setGlobal(const char* name,LuaObject obj);
 
+	/*
+	与getGlobal不同的是支持以下
+	lua中定义如下值：
+	Test test={a=1,b=2}
+	
+	C++中可以调用
+	getField("test.a")
+	*/
+	LuaObject getField(const char* name);
+	void setField(const char* name,LuaObject obj);
+
 	LuaObject getRegistery(const char* key);
 	LuaObject getRegistery(void* key);
 	void setRegistry(const char* key,const LuaObject obj);
@@ -46,7 +57,8 @@ public:
 
 	LuaObject newFunction(LuaCFunction);
 	LuaTable newLib(const LuaReg lib[]);
-	
+
+
 	//do string
 	LuaObject  doFile(const char *fileName);
 	LuaObject  doString(const char *str);
