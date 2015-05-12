@@ -72,6 +72,46 @@ void LuaState::setGlobal(const char* name,LuaObject obj)
 	lua_setglobal(m_ls,name);
 }
 
+const char* getFieldName(const char* str,char* buf,int len)
+{
+	int i=0;
+	while (*str)
+	{
+		if (*str=='.')
+		{
+			break;
+		}
+		else if(i<len)
+			buf[i++]=*str;
+		++str;
+	}
+	buf[i]='\0';
+	if (*str=='.')
+		++str;
+	return str;
+}
+
+
+LuaObject LuaState::getField(const char* name)
+{
+	char buf[128];
+	name=getFieldName(name,buf,sizeof(buf));
+	LuaTable lg=getGlobal(buf);
+	
+	while (lg.isValid() && *name)
+	{
+		name=getFieldName(name,buf,sizeof(buf));
+		lg=lg.getTable(buf);
+	}
+
+	if(*name=='\0')
+		return lg;
+	else
+		return luaNil;
+}
+
+
+
 
 
 LuaObject LuaState::newNil()

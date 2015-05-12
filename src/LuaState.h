@@ -34,7 +34,6 @@ public:
 	getField("test.a")
 	*/
 	LuaObject getField(const char* name);
-	void setField(const char* name,LuaObject obj);
 
 	LuaObject getRegistery(const char* key);
 	LuaObject getRegistery(void* key);

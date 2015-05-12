@@ -123,6 +123,15 @@ TEST(LuaObj,TestCppPerformance)
 	printf("CppAddTo %d value %d",addToCount,all);
 }
 
+TEST(LuaObj,TestGetField)
+{
+	L.doString("a={b={c=123}}");
+
+	LuaObject obj=L.getField("a.b.c");
+	EXPECT_EQ(obj.toInt(),123);
+}
+
+
 
 int main(int argc, char **argv)
 {
