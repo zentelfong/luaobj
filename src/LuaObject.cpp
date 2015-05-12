@@ -13,10 +13,6 @@ LuaObject::LuaObject(LuaState* L)
 
 LuaObject::LuaObject(LuaObjectImpl* impl)
 {
-	if(impl)
-	{
-		assert(impl->getRef()==1);
-	}
 	m_ptr=impl;
 }
 
@@ -39,8 +35,10 @@ LuaObject::~LuaObject(void)
 
 int LuaObject::getIndex()const
 {
-	assert (m_ptr);
-	return m_ptr->getIndex();
+	if(m_ptr)
+		return m_ptr->getIndex();
+	else
+		return 0;
 }
 
 const char* LuaObject::typeName()const
@@ -102,63 +100,99 @@ bool LuaObject::isNone()const
 
 lua_Number LuaObject::toNumber()const
 {
-	assert(m_ptr);
-	return lua_tonumber(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_tonumber(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return 0;
 }
 lua_Integer LuaObject::toInt()const
 {
-	assert(m_ptr);
-	return lua_tointeger(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_tointeger(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return 0;
 }
 bool LuaObject::toBool()const
 {
-	assert(m_ptr);
-	return lua_toboolean(m_ptr->getLuaState(),m_ptr->getIndex())!=0;
+	if(m_ptr)
+		return lua_toboolean(m_ptr->getLuaState(),m_ptr->getIndex())!=0;
+	else
+		return false;
 }
 const char* LuaObject::toString()const
 {
-	assert(m_ptr);
-	return lua_tostring(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_tostring(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return "";
 }
 lua_CFunction LuaObject::toCFunction()const
 {
-	assert(m_ptr);
-	return lua_tocfunction(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_tocfunction(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return NULL;
 }
 void * LuaObject::toData()const
 {
-	assert(m_ptr);
-	return lua_touserdata(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_touserdata(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return NULL;
 }
 
 void * LuaObject::checkData(const char* type)const
 {
-	assert(m_ptr);
-	return luaL_checkudata(m_ptr->getLuaState(),m_ptr->getIndex(),type);
+	if(m_ptr)
+		return luaL_checkudata(m_ptr->getLuaState(),m_ptr->getIndex(),type);
+	else
+		return NULL;
 }
 
 lua_State* LuaObject::toThread()const
 {
-	assert(m_ptr);
-	return lua_tothread(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_tothread(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return NULL;
 }
 const void* LuaObject::toPointer()const
 {
-	assert(m_ptr);
-	return lua_topointer(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_topointer(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return NULL;
 }
 
 size_t LuaObject::objLen()const
 {
-	assert(m_ptr);
-	return lua_objlen(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+		return lua_objlen(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return 0;
 }
 
 
 LuaObject& LuaObject::operator=(const LuaObject& other)
 {
-	lua_pushvalue(m_ptr->getLuaState(),other.getIndex());
-	lua_replace(m_ptr->getLuaState(),m_ptr->getIndex());
+	if(m_ptr)
+	{
+		if(other.m_ptr)
+		{
+			lua_pushvalue(m_ptr->getLuaState(),other.getIndex());
+			lua_replace(m_ptr->getLuaState(),m_ptr->getIndex());		
+		}
+		else
+		{
+			lua_pushnil(m_ptr->getLuaState());
+			lua_replace(m_ptr->getLuaState(),m_ptr->getIndex());
+		}
+	}
+	else if(other.m_ptr)
+	{
+		m_ptr=other.m_ptr;
+		m_ptr->addRef();
+	}
 	return *this;
 }
 
@@ -178,20 +212,24 @@ bool LuaObject::operator==(const char* s)
 
 lua_State* LuaObject::getLuaState()
 {
-	assert (m_ptr);
-	return m_ptr->getLuaState();
+	if(m_ptr)
+		return m_ptr->getLuaState();
+	else
+		return NULL;
 }
 
 LuaState* LuaObject::getCppLuaState()
 {
-	assert (m_ptr);
-	return m_ptr->getCppLuaState();
+	if (m_ptr)
+		return m_ptr->getCppLuaState();
+	else
+		return NULL;
 }
 
 
 bool LuaObject::setMetatable(LuaTable tab)
 {
-	if(tab.isValid())
+	if(m_ptr && tab.isValid())
 	{
 		lua_State * L=getLuaState();
 		lua_pushvalue(L,tab.getIndex());
@@ -202,9 +240,14 @@ bool LuaObject::setMetatable(LuaTable tab)
 
 LuaTable LuaObject::getMetatable()
 {
-	lua_State * L=getLuaState();
-	lua_getmetatable(L,getIndex());
-	return LuaObject::objFromIndex(getCppLuaState(),lua_gettop(L));
+	if(m_ptr)
+	{
+		lua_State * L=getLuaState();
+		lua_getmetatable(L,getIndex());
+		return LuaObject::objFromIndex(getCppLuaState(),lua_gettop(L));	
+	}
+	else
+		return luaNil;
 }
 
 

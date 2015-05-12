@@ -7,7 +7,11 @@
 
 
 #define LUAFUNCTION_PRECALL() \
-		assert(isValid());\
+		if(!isValid())\
+		{\
+			LUA_THROW_EXCEPTION("attempt to call a invalid function");\
+			return luaNil;\
+		}\
 		lua_State* L =getLuaState();\
 		lua_pushvalue(L,getIndex());
 
