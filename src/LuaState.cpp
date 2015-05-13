@@ -1,6 +1,7 @@
 ﻿#include "LuaState.h"
 #include "LuaObjectImpl.h"
 #include "LuaTable.h"
+#include "LuaFunction.h"
 #include "Utf.h"
 
 void LuaObjectStack::push(LuaObjectImpl* impl)
@@ -188,6 +189,17 @@ LuaTable LuaState::newLib(const LuaReg funcs[])
 	}
 	return lib;
 }
+
+LuaObject LuaState::require(const char *file)
+{
+	LuaFunction require=getGlobal("require");
+	if (require.isValid())
+	{
+		return require(file);
+	}
+	return newNil();
+}
+
 
 
 LuaObject LuaState::doFile(const char *fileName)

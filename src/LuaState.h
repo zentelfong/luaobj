@@ -56,7 +56,7 @@ public:
 
 	LuaObject newFunction(LuaCFunction);
 	LuaTable newLib(const LuaReg lib[]);
-
+	LuaObject require(const char *file);
 
 	//do string
 	LuaObject  doFile(const char *fileName);
