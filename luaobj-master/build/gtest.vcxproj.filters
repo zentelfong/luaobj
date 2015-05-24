@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\gtest\gtest-death-test.h" />
+    <ClInclude Include="..\gtest\gtest-message.h" />
+    <ClInclude Include="..\gtest\gtest-param-test.h" />
+    <ClInclude Include="..\gtest\gtest-printers.h" />
+    <ClInclude Include="..\gtest\gtest-spi.h" />
+    <ClInclude Include="..\gtest\gtest-test-part.h" />
+    <ClInclude Include="..\gtest\gtest-typed-test.h" />
+    <ClInclude Include="..\gtest\gtest.h" />
+    <ClInclude Include="..\gtest\gtest_pred_impl.h" />
+    <ClInclude Include="..\gtest\gtest_prod.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\gtest\src\gtest-all.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
