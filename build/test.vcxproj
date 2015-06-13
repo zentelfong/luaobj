@@ -116,6 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <AdditionalDependencies>lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,9 +168,6 @@
     </ProjectReference>
     <ProjectReference Include="gtest.vcxproj">
       <Project>{EC34880F-5849-B0C0-21CB-53208D9EACF1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="lua.vcxproj">
-      <Project>{C78D880B-3397-887C-BC12-9F7C281B947C}</Project>
     </ProjectReference>
     <ProjectReference Include="LuaObj.vcxproj">
       <Project>{62D5A2C1-4E77-CD97-3732-E1EB237354E8}</Project>

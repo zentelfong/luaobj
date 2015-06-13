@@ -169,7 +169,6 @@
     <ClInclude Include="..\luaobj\Utf.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\luaobj\LuaBind.cpp" />
     <ClCompile Include="..\luaobj\LuaEngine.cpp" />
     <ClCompile Include="..\luaobj\LuaFunction.cpp" />
     <ClCompile Include="..\luaobj\LuaObject.cpp" />

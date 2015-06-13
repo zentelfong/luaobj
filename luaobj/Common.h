@@ -8,11 +8,6 @@ extern "C" {
 	#include "luajit/lualib.h"
 	#include "luajit/lauxlib.h"
 }
-
-#ifdef WIN32
-#param comment(lib,"lua51.lib")
-#endif
-
 #else
 extern "C" {
 	#include "lua/lua.h"
