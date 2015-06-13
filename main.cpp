@@ -1,7 +1,6 @@
 #include "luaobj/Luaobj.h"
 #include "gtest/gtest.h"
 
-
 LuaEngine *L=NULL;
 
 TEST(LuaObj,TestInit)
