@@ -9,6 +9,9 @@
 // and the number of bytes (excluding NULL) is returned
 int UTF16To8( char *pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count );
 
+int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count);
+
+
 
 // Supports the same arguments as mbstowcs
 // the pszUTF8 source must be a UTF-8 string which will be processed up to NULL-terminator or nUTF8Count
@@ -19,7 +22,7 @@ int UTF16To8( char *pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count );
 // and the number of UTF-8 bytes converted is returned
 int UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count );
 
-
+int UTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count );
 
 
 template<unsigned int BUFSZ=128>

@@ -10,7 +10,6 @@ public:
 	LuaStateOwner()
 		:m_pool(0,false),LuaState(NULL),m_errorHandler(NULL)
 	{
-		m_type=LST_OWNER;
 		m_ls=lua_newstate(luaAlloc,&m_pool);
 		luaL_openlibs(m_ls);//³õÊ¼»¯¿â
 		lua_settop(m_ls,0);//Çå¿ÕÕ»

@@ -10,6 +10,7 @@
 		if(!isValid())\
 		{\
 			LUA_THROW_EXCEPTION("attempt to call a invalid function");\
+			return luaNil;\
 		}\
 		lua_State* L =getLuaState();\
 		lua_pushvalue(L,getIndex());
@@ -20,7 +21,8 @@
 		{\
 			std::string error = lua_tostring(L, -1);\
 			lua_pop(L,1);\
-			throw LuaException(error);\
+			LUA_THROW_EXCEPTION(error.c_str());\
+			return luaNil;\
 		}\
 		else\
 		{\

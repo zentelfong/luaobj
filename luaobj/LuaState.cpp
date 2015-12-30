@@ -27,7 +27,7 @@ void LuaObjectStack::pop(LuaObjectImpl* impl)
 
 
 LuaState::LuaState(lua_State* L)
-	:m_ls(L),m_type(LST_STACK)
+	:m_ls(L)
 {
 }
 
@@ -138,10 +138,10 @@ LuaObject LuaState::newString(const char*str,int len)
 
 LuaObject LuaState::newString(const wchar_t* utf16,int len)
 {
-	int utf8len=UTF16To8(NULL,(unsigned short*)utf16,0);
+	int utf8len=UTF16To8(NULL,0,(unsigned short*)utf16,len);
 	UtfBuffer<128> buf;
 	buf.malloc((utf8len+1)*sizeof(char));
-	UTF16To8((char*)buf.getBuf(),(unsigned short*)utf16,utf8len+1);
+	UTF16To8((char*)buf.getBuf(),utf8len+1,(unsigned short*)utf16,utf8len+1);
 	return LuaObjectImpl::create(this,(char*)buf.getBuf(),utf8len);
 }
 
@@ -288,3 +288,40 @@ void LuaState::enumStack()
 
 	printf("\n**************************enumStack\n");
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+LuaFuncState::LuaFuncState(lua_State* L)
+	:LuaState(L)
+{
+	m_argCount=lua_gettop(L);
+	if (m_argCount>LUA_MAX_ARG_COUNT)
+		m_argCount=LUA_MAX_ARG_COUNT;
+
+	for (int i=0;i<m_argCount;++i)
+	{
+		m_args[i]=LuaObjectImpl::createFromIndex(this,i+1);
+	}
+}
+
+LuaObject LuaFuncState::arg(int count)
+{
+	if(count>=m_argCount || count<0)
+		return LuaObject();
+	else
+		return m_args[count];
+}
+
+int LuaFuncState::argNum()
+{
+	return m_argCount;
+}
+
+
+
+
+
+
+
+

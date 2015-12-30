@@ -4,6 +4,10 @@
 
 LuaObject luaNil((LuaObjectImpl*)NULL);
 
+LuaObject::LuaObject()
+{
+	m_ptr=NULL;
+}
 
 LuaObject::LuaObject(LuaState* L)
 {

@@ -18,13 +18,6 @@ extern "C" {
 
 #define ZTLUA_NAME_OF_NAMESPACE luaobj
 
-#define ZTLUA_NAMESPACE_BEGIN namespace ZTLUA_NAME_OF_NAMESPACE{
-#define ZTLUA_NAMESPACE_END }
-
-#define ZTLUA_NAMESPACE ZTLUA_NAME_OF_NAMESPACE
-
-#define ZTLUA_USE_NAMESPACE using namespace ZTLUA_NAME_OF_NAMESPACE;
-
 #ifdef WIN32
  #define TLSVAR			DWORD
  #define TLSALLOC(k)	(*(k)=TlsAlloc(), TLS_OUT_OF_INDEXES==*(k))
@@ -55,11 +48,12 @@ extern "C" {
 #define LUA_OK 0
 
 class LuaState;
+class LuaFuncState;
 class LuaObject;
 class LuaTable;
 
 
-typedef int (*LuaCFunction) (LuaState& L,LuaTable& arg);
+typedef int (*LuaCFunction) (LuaFuncState& L);
 
 struct LuaReg
 {

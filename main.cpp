@@ -62,9 +62,9 @@ TEST(LuaObj,TestGlobalValue)
 }
 
 
-int CppAddFunction (LuaState& L,LuaTable& arg)
+int CppAddFunction (LuaFuncState& L)
 {
-	return L.lreturn(arg[1].toInt()+arg[2].toInt());
+	return L.lreturn(L.arg(0).toInt()+L.arg(1).toInt());
 }
 
 TEST(LuaObj,TestCallFunction)
@@ -102,7 +102,7 @@ TEST(LuaObj,TestLuaPerformance)
 
 		LuaObject value=lAddToFunc(addToCount);
 		lua_Integer i=value.toInt();
-		printf("luaAddTo %d value %d",addToCount,i);
+		printf("luaAddTo %d value %d\n",addToCount,i);
 	}
 	catch(LuaException e)
 	{
@@ -119,7 +119,7 @@ TEST(LuaObj,TestCppPerformance)
 		all+=i;
 	}
 
-	printf("CppAddTo %d value %d",addToCount,all);
+	printf("CppAddTo %d value %d\n",addToCount,all);
 }
 
 TEST(LuaObj,TestGetField)

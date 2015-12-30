@@ -170,6 +170,60 @@ void EncodeCharUTF8( int nUChar, char* pszUTF8, int& nUTF8Len )
 	}
 }
 
+int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count)
+{
+	int nUChar, nUTF8Len = 0;
+	if(nUTF16Count>=0)
+	{
+		while (--nUTF16Count>=0)
+		{
+			// Decode UTF-16
+			nUChar = DecodeCharUTF16( pwszUTF16, NULL );
+			if ( nUChar == -1 )
+				nUChar = '?';
+
+			// Encode UTF-8
+			if ( pszUTF8 && nUTF8Len + 4 > nUTF8Count )
+			{
+				int nUTF8LenSoFar = nUTF8Len;
+				EncodeCharUTF8( nUChar, NULL, nUTF8Len );
+				if ( nUTF8Len > nUTF8Count )
+					return nUTF8LenSoFar;
+				nUTF8Len = nUTF8LenSoFar;
+			}
+			EncodeCharUTF8( nUChar, pszUTF8, nUTF8Len );
+		}	
+	
+	}
+	else
+	{
+		while (*pwszUTF16)
+		{
+			// Decode UTF-16
+			nUChar = DecodeCharUTF16( pwszUTF16, NULL );
+			if ( nUChar == -1 )
+				nUChar = '?';
+
+			// Encode UTF-8
+			if ( pszUTF8 && nUTF8Len + 4 > nUTF8Count )
+			{
+				int nUTF8LenSoFar = nUTF8Len;
+				EncodeCharUTF8( nUChar, NULL, nUTF8Len );
+				if ( nUTF8Len > nUTF8Count )
+					return nUTF8LenSoFar;
+				nUTF8Len = nUTF8LenSoFar;
+			}
+			EncodeCharUTF8( nUChar, pszUTF8, nUTF8Len );
+		}	
+	}
+
+	if ( pszUTF8 && nUTF8Len < nUTF8Count )
+		pszUTF8[nUTF8Len] = 0;
+	return nUTF8Len;	
+
+
+}
+
 int UTF16To8( char* pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count )
 {
 	// Supports the same arguments as wcstombs
@@ -237,7 +291,34 @@ int UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count )
 	return nUTF8Len;
 }
 
+int UTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count )
+{
+	const char* pszPosUTF8 = pszUTF8;
+	const char* pszUTF8End = pszUTF8 + nUTF8Count;
+	int nUChar, nUTF8Len = 0, nUTF16Len = 0;
+	while ( pszPosUTF8 != pszUTF8End )
+	{
+		nUChar = DecodeCharUTF8( pszPosUTF8, pszUTF8End );
+		if ( ! nUChar )
+		{
+			if ( pwszUTF16 && nUTF16Len < nUTF16Count)
+				pwszUTF16[nUTF16Len] = 0;
+			break;
+		}
+		else if ( nUChar == -1 )
+			nUChar = '?';
 
+		// Encode UTF-16
+		if(nUTF16Len<nUTF16Count)
+			EncodeCharUTF16( nUChar, pwszUTF16, nUTF16Len );
+	}
+	nUTF8Len = (int)(pszPosUTF8 - pszUTF8);
+	if ( ! pwszUTF16 )
+		return nUTF16Len;
+	return nUTF8Len;
+
+
+}
 
 
 

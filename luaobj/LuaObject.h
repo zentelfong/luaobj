@@ -8,6 +8,7 @@ class LuaTable;
 class LuaObject
 {
 public:
+	LuaObject();
 	LuaObject(LuaState* L);
 	LuaObject(LuaObjectImpl* impl);
 	LuaObject(const LuaObject& rfs);

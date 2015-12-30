@@ -151,7 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\luaobj\Common.h" />
     <ClInclude Include="..\luaobj\LuaBind.h" />
     <ClInclude Include="..\luaobj\LuaClass.h" />
     <ClInclude Include="..\luaobj\LuaCommon.h" />

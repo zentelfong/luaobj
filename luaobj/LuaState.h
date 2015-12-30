@@ -12,6 +12,7 @@ public:
 	void push(LuaObjectImpl* impl);
 	void pop(LuaObjectImpl* impl);
 private:
+	//TODO 取消标准库的vector
 	std::vector<LuaObjectImpl*> m_data;
 };
 
@@ -72,10 +73,31 @@ public:
 
 	int getTop(){return lua_gettop(m_ls);}
 
+	LuaObjectStack* getStack(){return &m_stack;}
+
+	void enumStack();
+protected:
+	lua_State* m_ls;
+	LuaObjectStack m_stack;
+};
+
+
+class LuaFuncState:public LuaState
+{
+public:
+	enum{
+		LUA_MAX_ARG_COUNT=8
+	};
+
+	LuaFuncState(lua_State* L);
+
+	//获取函数参数0~argCount-1
+	LuaObject arg(int count);
+	int argNum();
+
 	template<class T1>
 	int lreturn(T1 t1)
 	{
-		assert(m_type==LST_STACK);
 		StackOps::Push(m_ls,t1);
 		return 1;
 	}
@@ -83,7 +105,6 @@ public:
 	template<class T1,class T2>
 	int lreturn(T1 t1,T2 t2)
 	{
-		assert(m_type==LST_STACK);
 		StackOps::Push(m_ls,t1);
 		StackOps::Push(m_ls,t2);
 		return 2;
@@ -92,7 +113,6 @@ public:
 	template<class T1,class T2,class T3>
 	int lreturn(T1 t1,T2 t2,T3 t3)
 	{
-		assert(m_type==LST_STACK);
 		StackOps::Push(m_ls,t1);
 		StackOps::Push(m_ls,t2);
 		StackOps::Push(m_ls,t3);
@@ -102,7 +122,6 @@ public:
 	template<class T1,class T2,class T3,class T4>
 	int lreturn(T1 t1,T2 t2,T3 t3,T4 t4)
 	{
-		assert(m_type==LST_STACK);
 		StackOps::Push(m_ls,t1);
 		StackOps::Push(m_ls,t2);
 		StackOps::Push(m_ls,t3);
@@ -113,7 +132,6 @@ public:
 	template<class T1,class T2,class T3,class T4,class T5>
 	int lreturn(T1 t1,T2 t2,T3 t3,T4 t4,T5 t5)
 	{
-		assert(m_type==LST_STACK);
 		StackOps::Push(m_ls,t1);
 		StackOps::Push(m_ls,t2);
 		StackOps::Push(m_ls,t3);
@@ -121,17 +139,7 @@ public:
 		StackOps::Push(m_ls,t5);
 		return 5;
 	}
-
-	LuaObjectStack* getStack(){return &m_stack;}
-
-	void enumStack();
-protected:
-	enum LuaStateType{
-		LST_STACK,
-		LST_OWNER
-	};
-	LuaStateType m_type;
-	lua_State* m_ls;
-	LuaObjectStack m_stack;
+private:
+	LuaObject m_args[LUA_MAX_ARG_COUNT];
+	int m_argCount;
 };
-

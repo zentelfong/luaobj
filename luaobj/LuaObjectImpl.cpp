@@ -6,19 +6,12 @@
 int LuaObjectImpl::callDelegate(lua_State* L)
 {
 	int nreturn=0;
-	LuaState LS(L);
+	LuaFuncState Ls(L);
 	{
 		LuaCFunction func =*((LuaCFunction*)(lua_touserdata(L, lua_upvalueindex(1))));
-		LuaTable args=LS.newTable();//入口参数
 
-		for (int i=1;i<=lua_gettop(L);++i)
-		{
-			lua_pushnumber(L,i);
-			lua_pushvalue(L,i);
-			lua_settable(L,args.getIndex());
-		}
 		try{
-			nreturn=func(LS,args);
+			nreturn=func(Ls);
 		}
 		catch(LuaException e)
 		{
@@ -37,11 +30,10 @@ int LuaObjectImpl::callDelegate(lua_State* L)
 		}
 		catch(...)
 		{
-			lua_pushliteral(L, "caught (...)");
+			lua_pushstring(L, "caught (...)");
 			return lua_error(L);
 		}
 	}
-	//LS.enumStack();
 	return nreturn;
 }
 
@@ -70,7 +62,8 @@ LuaObjectImpl* LuaObjectImpl::createFromTop(LuaState* L)
 void LuaObjectImpl::free()
 {
 	m_ls->getStack()->pop(this);
-	lua_remove(getLuaState(),m_index);
+	if(m_index>=0)
+		lua_remove(getLuaState(),m_index);
 	//释放内存
 	void* pool=NULL;
 	lua_Alloc alloc=lua_getallocf(getLuaState(),(void**)&pool);
