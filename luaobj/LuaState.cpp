@@ -4,36 +4,106 @@
 #include "LuaFunction.h"
 #include "Utf.h"
 
+#define MIN_STACK_SIZE 64
+
+LuaObjectStack::LuaObjectStack()
+	:m_data(NULL),m_total(0),m_use(0)
+{
+}
+
+LuaObjectStack::~LuaObjectStack()
+{
+	free(m_data);
+}
+
+void LuaObjectStack::resize(int newSize)
+{
+	if (m_total<MIN_STACK_SIZE)
+		m_total=MIN_STACK_SIZE;
+
+	while (m_total<newSize)
+	{
+		m_total*=2;
+	}
+	m_data=(data_t*)realloc(m_data,m_total * sizeof(data_t));
+}
+
+
 void LuaObjectStack::push(LuaObjectImpl* impl)
 {
-	m_data.push_back(impl);
+	if (m_use+1 > m_total)
+	{
+		resize(m_use+1);
+	}
+	m_data[m_use++]=impl;
 }
 
 void LuaObjectStack::pop(LuaObjectImpl* impl)
 {
-	for (int i=m_data.size()-1;i>=0;--i)
+	int find =-1;
+	for (int i=m_use-1;i>=0;--i)
 	{
 		if (m_data[i]==impl)
 		{
-			m_data.erase(m_data.begin()+i);
+			find=i;
 			break;
 		}
 		else
 			m_data[i]->decIndex();
+	}
+
+	if (find>=0)
+	{
+		for (int j=find;j<m_use-1;++j)
+		{
+			m_data[j]=m_data[j+1];
+		}
+		--m_use;
+	}
+	else
+	{
+		assert(false);
 	}
 }
 
 
 
 
+
+LuaMalloc::LuaMalloc(lua_State* L)
+{
+	m_alloc=lua_getallocf(L,(void**)&m_udata);
+}
+
+void* LuaMalloc::malloc(size_t bytes)
+{
+	return m_alloc(m_udata,NULL,0,bytes);
+}
+
+void  LuaMalloc::free(void* mem)
+{
+	m_alloc(m_udata,mem,0,0);
+}
+
+void* LuaMalloc::realloc(void* mem, size_t newsize)
+{
+	return m_alloc(m_udata,mem,0,newsize); 
+}
+
+
 LuaState::LuaState(lua_State* L)
-	:m_ls(L)
+	:m_ls(L),m_stack()
 {
 }
 
 
 LuaState::~LuaState(void)
 {
+}
+
+LuaMalloc LuaState::getMalloc()
+{
+	return LuaMalloc(m_ls);
 }
 
 LuaObject LuaState::getGlobal(const char* name)
@@ -212,7 +282,7 @@ LuaObject LuaState::doFile(const char *fileName)
 	}
 	else
 	{
-		return LuaObject::objFromIndex(this,lua_gettop(m_ls));
+		return LuaObject(this,lua_gettop(m_ls));
 	}
 }
 
@@ -227,7 +297,7 @@ LuaObject LuaState::doString(const char *fileName)
 	}
 	else
 	{
-		return LuaObject::objFromIndex(this,lua_gettop(m_ls));
+		return LuaObject(this,lua_gettop(m_ls));
 	}
 }
 
@@ -318,10 +388,75 @@ int LuaFuncState::argNum()
 	return m_argCount;
 }
 
+void LuaFuncState::error(const char* fmt,...)
+{
+	char buf[1024]={0};
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(buf,fmt,argp);
+	va_end(argp);
+	throw LuaException(buf);
+}
 
 
 
 
+////////////////////////////////////////////////////////////////////////////////////////
 
 
+void * LuaOwnerState::luaAlloc(void *ud, void *ptr, size_t, size_t nsize)
+{
+	MemPool *memalloc=(MemPool*)ud;
 
+	if (nsize == 0) 
+	{
+		if(ptr)
+			memalloc->free(ptr);
+		return NULL;
+	}
+	else
+	{  
+		if(ptr)
+			return memalloc->realloc(ptr,nsize);
+		else
+			return memalloc->malloc(nsize);
+	}	
+}
+
+
+void LuaOwnerState::error(const char* fmt,...)
+{
+	char buf[1024]={0};
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(buf,fmt,argp);
+	va_end(argp);
+
+	if (m_errorHandler)
+	{
+		m_errorHandler(buf);
+	}
+	else
+	{
+		printf(buf);
+	}
+}
+
+///////////////////////////////////////////////////////////////
+
+TlsValue LuaAutoState::s_tlsValue;
+
+LuaAutoState::LuaAutoState()
+{
+	s_tlsValue.set(this);
+}
+
+LuaAutoState::~LuaAutoState()
+{
+	s_tlsValue.set(NULL);
+}
+
+LuaAutoState* LuaAutoState::current()
+{
+	return (LuaAutoState*)(s_tlsValue.get());
+}

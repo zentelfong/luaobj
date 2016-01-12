@@ -7,7 +7,7 @@ template <typename T> class LuaClass {
   typedef struct { T *pT;bool owner; } userdataType;
   
 public:
-  typedef int (T::*mfp)(LuaState &L,LuaTable& arg);
+  typedef int (T::*mfp)(LuaFuncState &L);
   typedef struct { const char *name; mfp mfunc; } RegType;
 
 
@@ -86,7 +86,7 @@ public:
 	ud->owner=false;
     lua_getglobal(L, T::className());  // lookup metatable in Lua registry
     lua_setmetatable(L, -2);	
-	return LuaObject::objFromIndex(L->getLuaState(),lua_gettop(L->getLuaState()),true);
+	return LuaObject(L->getLuaState(),lua_gettop(L->getLuaState()),true);
   }
 
 private:
@@ -107,47 +107,25 @@ private:
   {
     // stack has userdata, followed by method args
     T *obj = check(L, 1);  // get 'self', or if you prefer, 'this'
-
     lua_remove(L, 1);  // remove self so member function args start at index 1
-	if(!obj)	return 0;
-
-
+	if(!obj)
+		return 0;
     RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
-	LuaState LS(L);
-	LuaTable args=LS.newTable();//入口参数
-	args.setAutoPop(false);
-
-	for (int i=1;i<=lua_gettop(L);++i)
-	{
-		lua_pushnumber(L,i);
-		lua_pushvalue(L,i);
-		lua_settable(L,args.getIndex());
-	}
-	
-	return (obj->*(l->mfunc))(LS,args);
+	LuaFuncState LS(L);
+	return (obj->*(l->mfunc))(LS);
   }
 
   // create a new T object and
   // push onto the Lua stack a userdata containing a pointer to T object
-  static int new_T(lua_State *L) {
+  static int new_T(lua_State *l) {
 
-	LuaState LS(L);
-	LuaTable args=LS.newTable();//入口参数
-	args.setAutoPop(false);
-
-	for (int i=1;i<=lua_gettop(L);++i)
-	{
-		lua_pushnumber(L,i);
-		lua_pushvalue(L,i);
-		lua_settable(L,args.getIndex());
-	}
-	
-    T *obj = new T(LS,args);  // call constructor for T objects
-    userdataType *ud =static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
+	LuaFuncState L(l);
+    T *obj = new T(L);  // call constructor for T objects
+    userdataType *ud =static_cast<userdataType*>(lua_newuserdata(l, sizeof(userdataType)));
     ud->pT = obj;  // store pointer to object in userdata
 	ud->owner=true;
-    lua_getglobal(L, T::className());  // lookup metatable in Lua registry
-    lua_setmetatable(L, -2);
+    lua_getglobal(l, T::className());  // lookup metatable in Lua registry
+    lua_setmetatable(l, -2);
     return 1;  // userdata containing pointer to T object
   }
 
@@ -171,7 +149,7 @@ private:
 };
 
 
-#define DECLARE_METHOD(Class, Name) {#Name, &Class::Name}
+#define DECLARE_METHOD(Name) {#Name, &Name}
 
 
 //函数映射

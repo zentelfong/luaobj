@@ -11,7 +11,7 @@ public:
 	LuaException(const char* w,const char* file,int line)
 	{
 		char buf[256];
-		_snprintf(buf,sizeof(buf),"Exception:%s file:%s line:%d",w,file,line);
+		_snprintf(buf,sizeof(buf),"LuaException:%s file:%s line:%d",w,file,line);
 		m_what=buf;
 	}
 

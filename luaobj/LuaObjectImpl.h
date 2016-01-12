@@ -64,7 +64,7 @@ public:
 		return count;
 	}
 
-	int getRef()
+	int getRef()const
 	{
 		return m_ref;
 	}

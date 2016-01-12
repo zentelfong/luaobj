@@ -14,6 +14,10 @@ LuaObject::LuaObject(LuaState* L)
 	m_ptr=LuaObjectImpl::create(L);
 }
 
+LuaObject::LuaObject(LuaState* L,int idx)
+{
+	m_ptr=LuaObjectImpl::createFromIndex(L,idx);
+}
 
 LuaObject::LuaObject(LuaObjectImpl* impl)
 {
@@ -25,12 +29,6 @@ LuaObject::LuaObject(const LuaObject& p)
 {
 	if (m_ptr)m_ptr->addRef();
 }
-
-LuaObject LuaObject::objFromIndex(LuaState* L,int idx)
-{
-	return LuaObjectImpl::createFromIndex(L,idx);
-}
-
 
 LuaObject::~LuaObject(void)
 {
@@ -81,6 +79,12 @@ bool LuaObject::isUData()const
 {
 	return getType()==LUA_TUSERDATA;
 }
+
+bool LuaObject::isPtr()const
+{
+	return getType()==LUA_TLIGHTUSERDATA;
+}
+
 bool LuaObject::isTable()const
 {
 	return getType()==LUA_TTABLE;
@@ -145,14 +149,6 @@ void * LuaObject::toData()const
 		return NULL;
 }
 
-void * LuaObject::checkData(const char* type)const
-{
-	if(m_ptr)
-		return luaL_checkudata(m_ptr->getLuaState(),m_ptr->getIndex(),type);
-	else
-		return NULL;
-}
-
 lua_State* LuaObject::toThread()const
 {
 	if(m_ptr)
@@ -160,7 +156,7 @@ lua_State* LuaObject::toThread()const
 	else
 		return NULL;
 }
-const void* LuaObject::toPointer()const
+const void* LuaObject::toPtr()const
 {
 	if(m_ptr)
 		return lua_topointer(m_ptr->getLuaState(),m_ptr->getIndex());
@@ -248,7 +244,7 @@ LuaTable LuaObject::getMetatable()
 	{
 		lua_State * L=getLuaState();
 		lua_getmetatable(L,getIndex());
-		return LuaObject::objFromIndex(getCppLuaState(),lua_gettop(L));	
+		return LuaObject(getCppLuaState(),lua_gettop(L));	
 	}
 	else
 		return luaNil;

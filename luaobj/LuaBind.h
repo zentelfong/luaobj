@@ -1,17 +1,15 @@
-#include "LuaEngine.h"
-#include "LuaObject.h"
-
+#pragma once
+#include "LuaState.h"
 
 //基类需要实现以下几个函数
 #define LBIND_BASE_CLASS_DEFINE(Class)\
 private:\
 	static const LuaReg _lualib[];\
 protected:\
-	static void _lbindBaseRegisterLib(const char* className,const char* baseName,const LuaReg lib[])\
+	static void _lbindBaseRegisterLib(LuaState* L,const char* className,const char* baseName,const LuaReg lib[])\
 	{\
-		LuaEngine* L=LuaManager::instance()->current();\
 		LuaTable luaClass=L->newLib((LuaReg*)lib);\
-		LuaTable envTable=L->getGlobal("UI");\
+		LuaTable envTable=L->getGlobal("lb");\
 		luaClass.setMetatable(envTable.getTable(baseName));\
 		luaClass.setTable("__index",luaClass);\
 		envTable.setTable(className,luaClass);\
@@ -35,7 +33,7 @@ protected:\
 			return L->newNil();\
 		}\
 		LuaObject obj=L->newData(&ptr,sizeof(ptr));\
-		LuaTable envTable=L->getGlobal("UI");\
+		LuaTable envTable=L->getGlobal("lb");\
 		obj.setMetatable(envTable.getTable(className));\
 		return obj;\
 	}\
@@ -44,7 +42,7 @@ public:\
 	{\
 		LuaTable llib=L->newLib((LuaReg*)_lualib);\
 		llib.setTable("__index",llib);\
-		LuaTable envTable=L->getGlobal("UI");\
+		LuaTable envTable=L->getGlobal("lb");\
 		envTable.setTable(#Class,llib);\
 	}\
 	static Class* _lbindLuaToC(LuaObject obj)\
@@ -65,7 +63,7 @@ static const LuaReg _lualib[];\
 public:\
 	static void _lbindRegisterLib(LuaState* L)\
 	{\
-		_lbindBaseRegisterLib(#Class,#BaseClass,_lualib);\
+		_lbindBaseRegisterLib(L,#Class,#BaseClass,_lualib);\
 	}\
 	static Class* _lbindLuaToC(LuaObject obj)\
 	{\
@@ -108,7 +106,7 @@ public:\
 
 #define LBIND_END_DEFINE_FUNC return 0;}
 
-//定义静态函数没有bindPtr指针
+//定义静态函数没有pThis指针
 #define LBIND_DEFINE_STATIC_FUNC(Class,Func)\
 	int Func(LuaState& L,LuaTable &arg)\
 {

@@ -26,7 +26,7 @@
 		}\
 		else\
 		{\
-			return LuaObject::objFromIndex(getCppLuaState(),lua_gettop(L));\
+			return LuaObject(getCppLuaState(),lua_gettop(L));\
 		}
 
 //调用lua函数使用,如果脚本错误会抛出C++异常

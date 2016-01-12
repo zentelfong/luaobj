@@ -10,6 +10,7 @@ class LuaObject
 public:
 	LuaObject();
 	LuaObject(LuaState* L);
+	LuaObject(LuaState* L,int idx);
 	LuaObject(LuaObjectImpl* impl);
 	LuaObject(const LuaObject& rfs);
 	~LuaObject(void);
@@ -31,6 +32,8 @@ public:
 	bool isThread()const;
 	bool isNone()const;
 
+	//lightudata
+	bool isPtr()const;
 
 	//to
 	lua_Number   toNumber()const;
@@ -39,10 +42,9 @@ public:
 	const char*  toString()const;
 	lua_CFunction toCFunction()const;
 	void *		 toData()const;
-	void *		 checkData(const char* type)const;
 
 	lua_State*   toThread()const;
-	const void*  toPointer()const;
+	const void*  toPtr()const;
 
 	size_t		 objLen()const;//返回数组的元素个数，字符串的长度，userdata所占字节数等
 
@@ -61,7 +63,6 @@ public:
 	bool setMetatable(LuaTable tab);
 	LuaTable getMetatable();
 
-	static LuaObject objFromIndex(LuaState* L,int idx);//非接口函数
 protected:
 	template<class T> friend  class LuaClass;
 
@@ -78,6 +79,4 @@ namespace StackOps
 	{
 		lua_pushvalue(L,value.getIndex()); 
 	}
-
-
 }

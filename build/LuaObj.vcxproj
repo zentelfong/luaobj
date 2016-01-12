@@ -151,29 +151,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\luaobj\ConvertUTF.h" />
     <ClInclude Include="..\luaobj\LuaBind.h" />
     <ClInclude Include="..\luaobj\LuaClass.h" />
+    <ClInclude Include="..\luaobj\LuaRegister.h" />
     <ClInclude Include="..\luaobj\LuaCommon.h" />
-    <ClInclude Include="..\luaobj\LuaEngine.h" />
     <ClInclude Include="..\luaobj\LuaException.h" />
     <ClInclude Include="..\luaobj\LuaFunction.h" />
     <ClInclude Include="..\luaobj\LuaObject.h" />
     <ClInclude Include="..\luaobj\LuaObjectImpl.h" />
     <ClInclude Include="..\luaobj\LuaStack.h" />
     <ClInclude Include="..\luaobj\LuaState.h" />
-    <ClInclude Include="..\luaobj\LuaStateOwner.h" />
     <ClInclude Include="..\luaobj\LuaTable.h" />
     <ClInclude Include="..\luaobj\Luaobj.h" />
     <ClInclude Include="..\luaobj\MemPool.h" />
     <ClInclude Include="..\luaobj\Utf.h" />
+    <ClInclude Include="LuaTypes.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\luaobj\LuaEngine.cpp" />
+    <ClCompile Include="..\luaobj\ConvertUTF.c" />
     <ClCompile Include="..\luaobj\LuaFunction.cpp" />
     <ClCompile Include="..\luaobj\LuaObject.cpp" />
     <ClCompile Include="..\luaobj\LuaObjectImpl.cpp" />
     <ClCompile Include="..\luaobj\LuaState.cpp" />
-    <ClCompile Include="..\luaobj\LuaStateOwner.cpp" />
     <ClCompile Include="..\luaobj\LuaTable.cpp" />
     <ClCompile Include="..\luaobj\Utf.cpp" />
   </ItemGroup>

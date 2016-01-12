@@ -9,11 +9,31 @@
 class LuaObjectStack
 {
 public:
+	LuaObjectStack();
+	~LuaObjectStack();
+
 	void push(LuaObjectImpl* impl);
 	void pop(LuaObjectImpl* impl);
 private:
-	//TODO 取消标准库的vector
-	std::vector<LuaObjectImpl*> m_data;
+	void resize(int newSize);
+
+	typedef LuaObjectImpl* data_t;
+
+	data_t* m_data;
+	int m_total;
+	int m_use;
+};
+
+class LuaMalloc
+{
+public:
+	LuaMalloc(lua_State* L);
+	void* malloc(size_t bytes);
+	void  free(void* mem);
+	void* realloc(void* mem, size_t newsize);
+private:
+	void* m_udata;
+	lua_Alloc m_alloc;
 };
 
 
@@ -23,18 +43,24 @@ public:
 	LuaState(lua_State* L);
 	~LuaState(void);
 
+	LuaMalloc getMalloc();
+
 	LuaObject getGlobal(const char* name);
 	void setGlobal(const char* name,LuaObject obj);
 
 	/*
 	与getGlobal不同的是支持以下
 	lua中定义如下值：
-	Test test={a=1,b=2}
+	_G.test={a=1,b=2}
 	
 	C++中可以调用
 	getField("test.a")
 	*/
 	LuaObject getField(const char* name);
+
+	//TODO:impl this
+	//void setField(const char* name,LuaObject obj);
+
 
 	LuaObject getRegistery(const char* key);
 	LuaObject getRegistery(void* key);
@@ -58,6 +84,7 @@ public:
 	LuaObject newFunction(LuaCFunction);
 	LuaTable newLib(const LuaReg lib[]);
 	LuaObject require(const char *file);
+
 
 	//do string
 	LuaObject  doFile(const char *fileName);
@@ -139,7 +166,54 @@ public:
 		StackOps::Push(m_ls,t5);
 		return 5;
 	}
+
+	virtual void error(const char* errorMsg,...);
 private:
 	LuaObject m_args[LUA_MAX_ARG_COUNT];
 	int m_argCount;
 };
+
+
+class LuaOwnerState:public LuaState
+{
+public:
+	LuaOwnerState()
+		:m_pool(0,false),LuaState(NULL),m_errorHandler(NULL)
+	{
+		m_ls=lua_newstate(luaAlloc,&m_pool);
+		luaL_openlibs(m_ls);//初始化库
+		lua_settop(m_ls,0);//清空栈
+	}
+
+	~LuaOwnerState()
+	{
+		lua_close(m_ls);
+		m_ls=NULL;
+	}
+
+	static void * luaAlloc(void *ud, void *ptr, size_t osize, size_t nsize);//内存分配
+
+	MemPool* getMemPool(){return &m_pool;}
+
+	virtual void error(const char* errorMsg,...);
+
+	void setErrorHandler(LuaErrorHandler handler){m_errorHandler=handler;}
+private:
+	MemPool m_pool;//内存分配池
+	LuaErrorHandler m_errorHandler;//错误处理函数
+};
+
+
+
+class LuaAutoState:public LuaOwnerState
+{
+public:
+	LuaAutoState();
+	~LuaAutoState();
+
+	static LuaAutoState* current();
+
+private:
+	static TlsValue s_tlsValue;
+};
+

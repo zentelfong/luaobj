@@ -1,16 +1,29 @@
 #include "luaobj/Luaobj.h"
+
 #include "gtest/gtest.h"
 
-LuaEngine *L=NULL;
+LuaAutoState *L=NULL;
 
 TEST(LuaObj,TestInit)
 {
-	ASSERT_EQ(L,LuaManager::instance()->current())<<"register current thread faield";
+	ASSERT_EQ(L,LuaAutoState::current())<<"register current thread faield";
 	ASSERT_EQ(L->getTop(),0);
 
 	{
 		LuaObject obj(L);
 		ASSERT_EQ(L->getTop(),1);
+	}
+	ASSERT_EQ(L->getTop(),0);
+
+	{
+		LuaObject * obj1=new LuaObject(L);
+		LuaObject * obj2=new LuaObject(L);
+		LuaObject * obj3=new LuaObject(L);
+		
+		delete obj2;
+		delete obj1;
+		delete obj3;
+
 	}
 	ASSERT_EQ(L->getTop(),0);
 }
@@ -131,14 +144,52 @@ TEST(LuaObj,TestGetField)
 }
 
 
+class Test
+{
+public:
+	Test(int i)
+	{
+
+	}
+	void test(const char* test)
+	{
+		printf(test);
+	}
+};
+
+
+class Test2:public Test
+{
+public:
+	Test2(LuaFuncState& L)
+		:Test(L.arg(0).toInt())
+	{
+	}
+
+	int test(LuaFuncState& L)
+	{
+		Test::test(L.arg(0).toString());
+		return 0;
+	}
+
+	BEGIN_MAP_FUNC(Test2)
+		DECLARE_METHOD(test),
+	END_MAP_FUNC
+};
+
+
 
 int main(int argc, char **argv)
 {
-	LuaEngine luaEngine;
+	LuaAutoState luaEngine;
 	L=&luaEngine;
+
 	testing::InitGoogleTest(&argc, argv);
 	int rtn= RUN_ALL_TESTS();
 
+	LuaClass<Test2>::Register(L->getLuaState(),NULL);
+
+	L->doString("local test=Test2.new();test:test('test')");
 	getchar();
 	return rtn;
 }

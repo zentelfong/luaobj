@@ -1,7 +1,4 @@
-
-#ifndef COMMON_H
-#define COMMON_H
-
+#pragma once
 
 extern "C" {
 	#include "lua/lua.h"
@@ -12,9 +9,15 @@ extern "C" {
 #include <string.h>
 #include <assert.h>
 #include <string>
-#include <vector>
 #include "MemPool.h"
 #include "Utf.h"
+
+#ifdef WIN32
+#include <Windows.h>
+#else
+#include <pthread.h>
+#endif
+
 
 #define ZTLUA_NAME_OF_NAMESPACE luaobj
 
@@ -24,7 +27,7 @@ extern "C" {
  #define TLSFREE(k)		(!TlsFree(k))
  #define TLSSET(k, a)	(!TlsSetValue(k, a))
 
-#ifdef DEBUG
+ #ifdef DEBUG
   inline LPVOID CheckedTlsGetValue(DWORD idx)
   {
 	LPVOID ret=TlsGetValue(idx);
@@ -32,9 +35,10 @@ extern "C" {
 	return ret;
   }
   #define TLSGET(k) CheckedTlsGetValue(k)
-#else
+ #else
   #define TLSGET(k)		TlsGetValue(k)
-#endif
+ #endif
+
 #else
  #define TLSVAR			pthread_key_t
  #define TLSALLOC(k)	pthread_key_create(k, 0)
@@ -43,6 +47,30 @@ extern "C" {
  #define TLSSET(k, a)	pthread_setspecific(k, a)
 #endif
 
+class TlsValue
+{
+public:
+	TlsValue()
+	{
+		TLSALLOC(&m_key);
+	}
+	~TlsValue()
+	{
+		TLSFREE(m_key);
+	}
+
+	inline bool set(void* value)
+	{
+		return TLSSET(m_key, value);
+	}
+
+	inline void* get()
+	{
+		return TLSGET(m_key);
+	}
+private:
+	TLSVAR m_key;
+};
 
 
 #define LUA_OK 0
@@ -66,6 +94,3 @@ struct lua_index
 {
 	int index;
 };
-
-
-#endif

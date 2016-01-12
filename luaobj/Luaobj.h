@@ -6,8 +6,7 @@
 #include "LuaTable.h"
 #include "LuaException.h"
 #include "LuaStack.h"
-#include "LuaEngine.h"
 #include "LuaFunction.h"
 #include "LuaTable.h"
 #include "LuaBind.h"
-
+#include "LuaClass.h"
