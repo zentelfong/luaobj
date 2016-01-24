@@ -54,5 +54,29 @@ public:
 		}
 		return false;	
 	}
+
+	//迭代器
+	class Iterator
+	{
+	public:
+		Iterator();
+		Iterator(LuaObject ltab);
+		LuaObject key();
+		LuaObject value();
+
+		bool operator!=(const Iterator& rfs);
+		bool operator==(const Iterator& rfs);
+		bool operator++();
+		bool isValid()const;
+		
+	private:
+		LuaObject m_table;
+		LuaObject m_key;
+		LuaObject m_value;
+		bool m_valid;
+	};
+
+	Iterator begin();
+	Iterator end();
 };
 

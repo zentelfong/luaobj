@@ -319,9 +319,8 @@ void LuaState::enumStack()
 	lua_State *L=m_ls;
 	int top = lua_gettop(L);
 
-	printf("enumStack**************************\n");
+	printf("Stack:%d<************************\n",top);
 
-	printf("Type:%d", top);
 	for(int i=1; i<=lua_gettop(L); ++i)
 	{
 		switch(lua_type(L, i))
@@ -356,7 +355,7 @@ void LuaState::enumStack()
 		}
 	}
 
-	printf("\n**************************enumStack\n");
+	printf("\n**************************>Stack\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

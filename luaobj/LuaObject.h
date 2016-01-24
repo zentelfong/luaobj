@@ -54,7 +54,7 @@ public:
 	//比较
 	bool operator==(lua_Integer n);
 	bool operator==(const char* s);
-
+	bool operator==(const LuaObject& other);
 
 
 	lua_State* getLuaState();

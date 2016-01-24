@@ -209,6 +209,18 @@ bool LuaObject::operator==(const char* s)
 		return false;
 }
 
+bool LuaObject::operator==(const LuaObject& other)
+{
+	if (m_ptr && other.m_ptr)
+	{
+		return lua_equal(getLuaState(),getIndex(),other.getIndex())==0;
+	}
+	else
+	{
+		return m_ptr==other.m_ptr;
+	}
+}
+
 
 lua_State* LuaObject::getLuaState()
 {

@@ -11,16 +11,11 @@ public:
   typedef struct { const char *name; mfp mfunc; } RegType;
 
 
-  static void Register(LuaState* L)
+  static void Register(lua_State* L)
   {
-	Register(L->getLuaState(),NULL);
+	Register(L,NULL);
   }
 
-  template<class PT>
-  static void Register(LuaState* L)
-  {
-	Register(L->getLuaState(),PT::className());
-  }
 
   static void Register(lua_State *L,const char* parentClassName) {
     lua_newtable(L);
@@ -28,15 +23,52 @@ public:
 
     // store method table in globals so that
     // scripts can add functions written in Lua.
-    lua_pushstring(L, T::className());
-    lua_pushvalue(L, methods);
-    lua_settable(L, LUA_GLOBALSINDEX);
+	const char* find=strstr(T::className(),".");
+	if (find)
+	{
+		lua_pushlstring(L,T::className(),find-T::className());
+		lua_gettable(L,LUA_GLOBALSINDEX);
+		if (!lua_istable(L,-1))
+		{
+			lua_newtable(L);
+			lua_pushlstring(L,T::className(),find-T::className());
+			lua_pushvalue(L, -2);
+			lua_settable(L, LUA_GLOBALSINDEX);
+		}
+		assert(lua_type(L,-1)==LUA_TTABLE);
+		lua_pushstring(L, find+1);
+		lua_pushvalue(L, methods);
+		lua_settable(L, -3);
+		lua_pop(L,1);
+	}
+	else
+	{
+		lua_pushstring(L, T::className());
+		lua_pushvalue(L, methods);
+		lua_settable(L, LUA_GLOBALSINDEX);
+	}
+	
+
 
 	if(parentClassName)
 	{
-		lua_getglobal(L,parentClassName);
-		assert(lua_type(L,-1)==LUA_TTABLE);
-		lua_setmetatable(L,methods);
+		const char* find=strstr(parentClassName,".");
+		if (find)
+		{
+			lua_pushlstring(L,parentClassName,find-parentClassName);
+			lua_gettable(L,LUA_GLOBALSINDEX);
+			lua_getfield(L,-1,find+1);
+			lua_remove(L,-2);
+
+			assert(lua_type(L,-1)==LUA_TTABLE);
+			lua_setmetatable(L,methods);
+		}
+		else
+		{
+			lua_getglobal(L,parentClassName);
+			assert(lua_type(L,-1)==LUA_TTABLE);
+			lua_setmetatable(L,methods);
+		}
 	}
 
 
@@ -84,9 +116,19 @@ public:
     userdataType *ud = static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
     ud->pT = obj;  // store pointer to object in userdata
 	ud->owner=false;
-    lua_getglobal(L, T::className());  // lookup metatable in Lua registry
-    lua_setmetatable(L, -2);	
-	return LuaObject(L->getLuaState(),lua_gettop(L->getLuaState()),true);
+
+	const char* find=strstr(T::className(),".");
+	if(find)
+	{
+		lua_pushlstring(L,T::className(),find-T::className());
+		lua_gettable(L,LUA_GLOBALSINDEX);
+		lua_getfield(L,-1,find+1);
+		lua_remove(L,-2);
+	}
+	else
+		lua_getglobal(L, T::className());  // lookup metatable in Lua registry
+    lua_setmetatable(L, -2);
+	return LuaObject(L->getLuaState(),lua_gettop(L->getLuaState()));
   }
 
 private:
@@ -124,7 +166,16 @@ private:
     userdataType *ud =static_cast<userdataType*>(lua_newuserdata(l, sizeof(userdataType)));
     ud->pT = obj;  // store pointer to object in userdata
 	ud->owner=true;
-    lua_getglobal(l, T::className());  // lookup metatable in Lua registry
+	const char* find=strstr(T::className(),".");
+	if(find)
+	{
+		lua_pushlstring(l,T::className(),find-T::className());
+		lua_gettable(l,LUA_GLOBALSINDEX);
+		lua_getfield(l,-1,find+1);
+		lua_remove(l,-2);
+	}
+	else
+		lua_getglobal(l, T::className());  // lookup metatable in Lua registry
     lua_setmetatable(l, -2);
     return 1;  // userdata containing pointer to T object
   }
@@ -153,11 +204,11 @@ private:
 
 
 //º¯ÊýÓ³Éä
-#define BEGIN_MAP_FUNC(name)\
-	static const char* className(){return #name;}\
-	static LuaClass<name>::RegType * methods()\
+#define BEGIN_MAP_FUNC(_class,_className)\
+	static const char* className(){return _className;}\
+	static LuaClass<_class>::RegType * methods()\
 	{\
-		static LuaClass<name>::RegType _methods[] = {
+		static LuaClass<_class>::RegType _methods[] = {
 
 #define END_MAP_FUNC\
 		{0,0}\
