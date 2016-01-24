@@ -143,6 +143,22 @@ TEST(LuaObj,TestGetField)
 	EXPECT_EQ(obj.toInt(),123);
 }
 
+TEST(LuaObj,TestTableIterator)
+{
+	L->doString("a={1,2,3,4,a=5,b=6,c=7}");
+	L->enumStack();
+	LuaTable tab=L->getGlobal("a");
+	for (LuaTable::Iterator i=tab.begin();i!=tab.end();++i)
+	{
+		printf("%d\t",i.value().toInt());
+	}
+	
+	printf("\n");
+	L->enumStack();
+}
+
+
+
 
 class Test
 {
@@ -153,7 +169,7 @@ public:
 	}
 	void test(const char* test)
 	{
-		printf(test);
+		printf("Test:%s\n",test);
 	}
 };
 
@@ -172,8 +188,65 @@ public:
 		return 0;
 	}
 
-	BEGIN_MAP_FUNC(Test2)
+	BEGIN_MAP_FUNC(Test2,"cc.Test")
 		DECLARE_METHOD(test),
+	END_MAP_FUNC
+};
+
+
+
+class Parent
+{
+public:
+	void test(const char* test)
+	{
+		printf("Parent:%s\n",test);
+	}
+};
+
+class Child:public Parent
+{
+public:
+	void test(const char* test)
+	{
+		printf("Child:%s\n",test);
+	}
+};
+
+
+
+class LParent:public Parent
+{
+public:
+	LParent(LuaFuncState& L)
+	{
+	}
+	int test(LuaFuncState& L)
+	{
+		Parent::test(L.arg(0).toString());
+		return 0;
+	}
+
+	BEGIN_MAP_FUNC(LParent,"cc.Parent")
+		DECLARE_METHOD(test),
+	END_MAP_FUNC
+};
+
+class LChild:public Child
+{
+public:
+	LChild(LuaFuncState& L)
+	{
+	}
+
+	int test2(LuaFuncState& L)
+	{
+		Child::test(L.arg(0).toString());
+		return 0;
+	}
+
+	BEGIN_MAP_FUNC(LChild,"cc.Child")
+		DECLARE_METHOD(test2),
 	END_MAP_FUNC
 };
 
@@ -187,9 +260,13 @@ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 	int rtn= RUN_ALL_TESTS();
 
-	LuaClass<Test2>::Register(L->getLuaState(),NULL);
+	LuaClass<Test2>::Register(L->getLuaState());
+	LuaClass<LParent>::Register(L->getLuaState());
+	LuaClass<LChild>::Register(L->getLuaState(),"cc.Parent");
 
-	L->doString("local test=Test2.new();test:test('test')");
+	L->doString("local test=cc.Test.new();test:test('test')");
+	L->doString("local test=cc.Parent.new();test:test('test')");
+	L->doString("local test=cc.Child.new();test:test('test');test:test2('test')");
 	getchar();
 	return rtn;
 }
