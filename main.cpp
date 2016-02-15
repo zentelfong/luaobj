@@ -262,7 +262,7 @@ int main(int argc, char **argv)
 
 	LuaClass<Test2>::Register(L->getLuaState());
 	LuaClass<LParent>::Register(L->getLuaState());
-	LuaClass<LChild>::Register(L->getLuaState(),"cc.Parent");
+	LuaClass<LChild>::Register<LParent>(L->getLuaState());
 
 	L->doString("local test=cc.Test.new();test:test('test')");
 	L->doString("local test=cc.Parent.new();test:test('test')");

@@ -16,6 +16,12 @@ public:
 	Register(L,NULL);
   }
 
+  template<class T>
+  static void Register(lua_State* L)
+  {
+	  Register(L,T::className());
+  }
+
 
   static void Register(lua_State *L,const char* parentClassName) {
     lua_newtable(L);
