@@ -1,9 +1,9 @@
 #pragma once
 
 extern "C" {
-	#include "lua/lua.h"
-	#include "lua/lualib.h"
-	#include "lua/lauxlib.h"
+	#include "../lua/lua.h"
+	#include "../lua/lualib.h"
+	#include "../lua/lauxlib.h"
 }
 
 #include <string.h>
@@ -47,7 +47,7 @@ extern "C" {
  #define TLSSET(k, a)	pthread_setspecific(k, a)
 #endif
 
-class TlsValue
+class LUA_API TlsValue
 {
 public:
 	TlsValue()

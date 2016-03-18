@@ -1,7 +1,7 @@
 #pragma once
-#include "malloc/dlmalloc.h"
+#include "../malloc/dlmalloc.h"
 
-class MemPool
+class LUA_API MemPool
 {
 public:
 	MemPool(size_t defSize,bool useLock)

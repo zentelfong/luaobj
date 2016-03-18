@@ -116,6 +116,12 @@ LuaObject LuaState::getRegistery(const char* key)
 	return LuaObjectImpl::createGetRegistery(this,key);
 }
 
+LuaObject LuaState::getRegistery(int key)
+{
+	return LuaObjectImpl::createGetRegistery(this,key);
+}
+
+
 LuaObject LuaState::getRegistery(void* key)
 {
 	return LuaObjectImpl::createGetRegistery(this,key);
@@ -124,6 +130,13 @@ LuaObject LuaState::getRegistery(void* key)
 void LuaState::setRegistry(const char* key,const LuaObject obj)
 {
 	lua_pushstring(m_ls,key);
+	lua_pushvalue(m_ls,obj.getIndex());
+	lua_settable(m_ls, LUA_REGISTRYINDEX);
+}
+
+void LuaState::setRegistry(int key,const LuaObject obj)
+{
+	lua_pushinteger(m_ls,key);
 	lua_pushvalue(m_ls,obj.getIndex());
 	lua_settable(m_ls, LUA_REGISTRYINDEX);
 }
@@ -274,11 +287,12 @@ LuaObject LuaState::require(const char *file)
 
 LuaObject LuaState::doFile(const char *fileName)
 {
-	if((luaL_loadfile(m_ls, fileName) || lua_pcall(m_ls, 0, 1, 0))!=0)
+	if(luaL_loadfile(m_ls, fileName)!=LUA_OK || lua_pcall(m_ls, 0, 1, 0)!=LUA_OK)
 	{
 		std::string err=lua_tostring(m_ls,-1);
 		lua_pop(m_ls,1);
 		throw LuaException(err.c_str());
+		return luaNil;
 	}
 	else
 	{
@@ -287,19 +301,47 @@ LuaObject LuaState::doFile(const char *fileName)
 }
 
 
-LuaObject LuaState::doString(const char *fileName)
+LuaObject LuaState::doString(const char *str)
 {
-	if((luaL_loadstring(m_ls, fileName) || lua_pcall(m_ls, 0, 1, 0))!=0)
+	if(luaL_loadstring(m_ls, str)!=LUA_OK || lua_pcall(m_ls, 0, 1, 0)!=LUA_OK)
 	{
 		std::string err=lua_tostring(m_ls,-1);
 		lua_pop(m_ls,1);
 		throw LuaException(err.c_str());
+		return luaNil;
 	}
 	else
 	{
 		return LuaObject(this,lua_gettop(m_ls));
 	}
 }
+
+LuaObject LuaState::loadFile(const char *fileName)
+{
+	if(luaL_loadfile(m_ls, fileName)!=LUA_OK)
+	{
+		std::string err=lua_tostring(m_ls,-1);
+		lua_pop(m_ls,1);
+		throw LuaException(err.c_str());
+		return luaNil;
+	}
+	else
+		return LuaObject(this,lua_gettop(m_ls));
+}
+
+LuaObject LuaState::loadString(const char *str)
+{
+	if(luaL_loadstring(m_ls, str)!=LUA_OK)
+	{
+		std::string err=lua_tostring(m_ls,-1);
+		lua_pop(m_ls,1);
+		throw LuaException(err.c_str());
+		return luaNil;
+	}
+	else
+		return LuaObject(this,lua_gettop(m_ls));
+}
+
 
 void LuaState::error(const char* fmt,...)
 {
@@ -361,8 +403,8 @@ void LuaState::enumStack()
 ////////////////////////////////////////////////////////////////////////////////////////
 
 
-LuaFuncState::LuaFuncState(lua_State* L)
-	:LuaState(L)
+LuaFuncState::LuaFuncState(lua_State* L,bool bOwner)
+	:LuaState(L),m_owner(bOwner)
 {
 	m_argCount=lua_gettop(L);
 	if (m_argCount>LUA_MAX_ARG_COUNT)
@@ -402,6 +444,38 @@ void LuaFuncState::error(const char* fmt,...)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
+//扩展的setmetatable lua的只能设置表的metatable
+int luaSetMetatable(lua_State* L)
+{
+	if((lua_istable(L,1) || lua_isuserdata(L,1))&& lua_istable(L,2))
+	{
+		lua_setmetatable(L,1);
+		return 1;
+	}
+	else
+	{
+		luaL_error(L,"setmetatable param error");
+		return 0;
+	}
+}
+
+LuaOwnerState::LuaOwnerState()
+	:m_pool(0,false),LuaState(NULL),m_errorHandler(NULL)
+{
+	m_ls=lua_newstate(luaAlloc,&m_pool);
+	luaL_openlibs(m_ls);//初始化库
+
+	lua_pushcfunction(m_ls,luaSetMetatable);
+	lua_setglobal(m_ls,"setmetatableex");
+
+	lua_settop(m_ls,0);//清空栈
+}
+
+LuaOwnerState::~LuaOwnerState()
+{
+	lua_close(m_ls);
+	m_ls=NULL;
+}
 
 void * LuaOwnerState::luaAlloc(void *ud, void *ptr, size_t, size_t nsize)
 {

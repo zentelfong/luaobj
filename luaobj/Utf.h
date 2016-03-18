@@ -1,5 +1,9 @@
 #pragma once
-
+extern "C" {
+#include "../lua/lua.h"
+#include "../lua/lualib.h"
+#include "../lua/lauxlib.h"
+}
 
 // Supports the same arguments as wcstombs
 // the pwszUTF16 source must be a NULL-terminated UTF-16 string
@@ -7,9 +11,9 @@
 // otherwise pszUTF8 is filled with the result string and NULL-terminated if nUTF8Count allows
 // nUTF8Count is the byte size of pszUTF8 and must be large enough for the NULL if NULL desired
 // and the number of bytes (excluding NULL) is returned
-int UTF16To8( char *pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count );
+int LUA_API UTF16To8( char *pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count );
 
-int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count);
+int LUA_API UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count);
 
 
 
@@ -20,9 +24,9 @@ int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,in
 // if pwszUTF16 is not NULL it is filled with the result string and it must be large enough
 // result will be NULL-terminated if NULL encountered in pszUTF8 before nUTF8Count
 // and the number of UTF-8 bytes converted is returned
-int UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count );
+int LUA_API UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count );
 
-int UTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count );
+int LUA_API UTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count );
 
 
 template<unsigned int BUFSZ=128>

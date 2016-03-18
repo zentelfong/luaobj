@@ -2,7 +2,7 @@
 #include "LuaCommon.h"
 #include <stdio.h>
 
-class LuaException
+class LUA_API LuaException
 {
 public:
 	LuaException(const std::string & w):m_what(w){}

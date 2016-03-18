@@ -113,6 +113,15 @@ lua_Number LuaObject::toNumber()const
 	else
 		return 0;
 }
+
+float LuaObject::toFloat()const
+{
+	if(m_ptr)
+		return (float)lua_tonumber(m_ptr->getLuaState(),m_ptr->getIndex());
+	else
+		return 0;
+}
+
 lua_Integer LuaObject::toInt()const
 {
 	if(m_ptr)
@@ -120,6 +129,21 @@ lua_Integer LuaObject::toInt()const
 	else
 		return 0;
 }
+
+unsigned int LuaObject::toUInt()const
+{
+	if(m_ptr)
+	{
+		lua_Integer rt=lua_tointeger(m_ptr->getLuaState(),m_ptr->getIndex());
+		if(rt>=0)
+			return (unsigned int)rt;
+		else
+			return 0;
+	}
+	else
+		return 0;
+}
+
 bool LuaObject::toBool()const
 {
 	if(m_ptr)

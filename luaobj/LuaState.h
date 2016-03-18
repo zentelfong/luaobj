@@ -6,7 +6,7 @@
 #include "LuaStack.h"
 
 
-class LuaObjectStack
+class LUA_API LuaObjectStack
 {
 public:
 	LuaObjectStack();
@@ -24,7 +24,7 @@ private:
 	int m_use;
 };
 
-class LuaMalloc
+class LUA_API LuaMalloc
 {
 public:
 	LuaMalloc(lua_State* L);
@@ -37,7 +37,7 @@ private:
 };
 
 
-class LuaState
+class LUA_API LuaState
 {
 public:
 	LuaState(lua_State* L);
@@ -63,8 +63,10 @@ public:
 
 
 	LuaObject getRegistery(const char* key);
+	LuaObject getRegistery(int key);
 	LuaObject getRegistery(void* key);
 	void setRegistry(const char* key,const LuaObject obj);
+	void setRegistry(int key,const LuaObject obj);
 	void setRegistry(const void *key,const LuaObject obj);
 
 	LuaObject newNil();
@@ -90,6 +92,10 @@ public:
 	LuaObject  doFile(const char *fileName);
 	LuaObject  doString(const char *str);
 
+	//返回一个函数
+	LuaObject  loadFile(const char *fileName);
+	LuaObject  loadString(const char *str);
+
 	virtual void error(const char* errorMsg,...);
 
 	//创建多个参数
@@ -109,14 +115,14 @@ protected:
 };
 
 
-class LuaFuncState:public LuaState
+class LUA_API LuaFuncState:public LuaState
 {
 public:
 	enum{
 		LUA_MAX_ARG_COUNT=8
 	};
 
-	LuaFuncState(lua_State* L);
+	LuaFuncState(lua_State* L,bool bOwner=false);
 
 	//获取函数参数0~argCount-1
 	LuaObject arg(int count);
@@ -168,28 +174,19 @@ public:
 	}
 
 	virtual void error(const char* errorMsg,...);
+	bool isOwner(){return m_owner;}
 private:
 	LuaObject m_args[LUA_MAX_ARG_COUNT];
 	int m_argCount;
+	bool m_owner;
 };
 
 
-class LuaOwnerState:public LuaState
+class LUA_API LuaOwnerState:public LuaState
 {
 public:
-	LuaOwnerState()
-		:m_pool(0,false),LuaState(NULL),m_errorHandler(NULL)
-	{
-		m_ls=lua_newstate(luaAlloc,&m_pool);
-		luaL_openlibs(m_ls);//初始化库
-		lua_settop(m_ls,0);//清空栈
-	}
-
-	~LuaOwnerState()
-	{
-		lua_close(m_ls);
-		m_ls=NULL;
-	}
+	LuaOwnerState();
+	~LuaOwnerState();
 
 	static void * luaAlloc(void *ud, void *ptr, size_t osize, size_t nsize);//内存分配
 
@@ -205,7 +202,7 @@ private:
 
 
 
-class LuaAutoState:public LuaOwnerState
+class LUA_API LuaAutoState:public LuaOwnerState
 {
 public:
 	LuaAutoState();

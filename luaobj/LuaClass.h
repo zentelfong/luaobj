@@ -2,10 +2,15 @@
 #include "LuaCommon.h"
 #include "LuaObject.h"
 
+//luaclass 注册的对象都是该类的之类,dynamic_cast检查指针的有效性
+class LUA_API LuaClassObj
+{
+protected:
+	virtual ~LuaClassObj(){}
+};
 
 template <typename T> class LuaClass {
-  typedef struct { T *pT;bool owner; } userdataType;
-  
+  typedef struct { LuaClassObj *pT;bool owner; } userdataType;
 public:
   typedef int (T::*mfp)(LuaFuncState &L);
   typedef struct { const char *name; mfp mfunc; } RegType;
@@ -94,6 +99,10 @@ public:
     lua_pushcfunction(L, new_T);
     lua_settable(L, methods);
 
+	lua_pushliteral(L, "__ctype");
+	lua_pushinteger(L, 1);
+	lua_settable(L, methods);
+
 
     // fill method table with methods from class T
     for (RegType *l = T::methods(); l->name; l++) {
@@ -108,17 +117,19 @@ public:
   }
 
 
-  static T* luaToC(LuaObject obj)
+  static LuaClassObj* luaToC(LuaObject obj)
   {
-	T * ptr=NULL;
+
 	userdataType *ud=(userdataType*)obj.toData();
 	if (ud)
-		ptr= ud->pT;
-	return ptr;
+		return ud->pT;
+	else
+		return NULL;
   }
 
-  static LuaObject cToLua(LuaState* L,T* obj)
+  static LuaObject cToLua(LuaState* Lp,LuaClassObj* obj)
   {
+	lua_State* L=Lp->getLuaState();
     userdataType *ud = static_cast<userdataType*>(lua_newuserdata(L, sizeof(userdataType)));
     ud->pT = obj;  // store pointer to object in userdata
 	ud->owner=false;
@@ -134,33 +145,34 @@ public:
 	else
 		lua_getglobal(L, T::className());  // lookup metatable in Lua registry
     lua_setmetatable(L, -2);
-	return LuaObject(L->getLuaState(),lua_gettop(L->getLuaState()));
+	return LuaObject(Lp,lua_gettop(L));
   }
 
 private:
   LuaClass();  // hide default constructor
-
-  // get userdata from Lua stack and return pointer to T object
-  static T *check(lua_State *L, int narg) {
-	T * ptr=NULL;
-	userdataType *ud=(userdataType*)lua_touserdata(L,narg);
-	if (ud)
-		ptr= ud->pT;
-	return ptr;
-  }
 
 
   // member function dispatcher
   static int thunk(lua_State *L) 
   {
     // stack has userdata, followed by method args
-    T *obj = check(L, 1);  // get 'self', or if you prefer, 'this'
-    lua_remove(L, 1);  // remove self so member function args start at index 1
-	if(!obj)
+    // get 'self', or if you prefer, 'this'
+	T * obj=NULL;
+	userdataType *ud=(userdataType*)lua_touserdata(L,1);
+	if (!ud || !ud->pT)
 		return 0;
-    RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
-	LuaFuncState LS(L);
-	return (obj->*(l->mfunc))(LS);
+	else
+		obj = static_cast<T*>(ud->pT);
+
+	if(obj)
+	{
+		lua_remove(L, 1);  // remove self so member function args start at index 1
+		RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
+		LuaFuncState LS(L,ud->owner);
+		return (obj->*(l->mfunc))(LS);
+	}
+	else
+		return 0;
   }
 
   // create a new T object and
@@ -189,16 +201,19 @@ private:
   // garbage collection metamethod
   static int gc_T(lua_State *L) {
     userdataType *ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-    T *obj = ud->pT;
+    T *obj = static_cast<T*>(ud->pT);
 	if(ud->owner)
+	{
 		delete obj;  // call destructor for T objects
+		ud->pT=NULL;
+	}
     return 0;
   }
 
   static int tostring_T (lua_State *L) {
     char buff[32];
     userdataType *ud = static_cast<userdataType*>(lua_touserdata(L, 1));
-    T *obj = ud->pT;
+    T *obj = static_cast<T*>(ud->pT);
     sprintf(buff, "%p", obj);
     lua_pushfstring(L, "%s (%s)", T::className(), buff);
     return 1;
@@ -206,8 +221,9 @@ private:
 };
 
 
-#define DECLARE_METHOD(Name) {#Name, &Name}
+#define DECLARE_FUNC(Name) {#Name, &Name}
 
+#define DECLARE_GCFUNC(Name) {"__gc", &Name}
 
 //函数映射
 #define BEGIN_MAP_FUNC(_class,_className)\

@@ -8,5 +8,5 @@
 #include "LuaStack.h"
 #include "LuaFunction.h"
 #include "LuaTable.h"
-#include "LuaBind.h"
 #include "LuaClass.h"
+#include "LuaState.h"

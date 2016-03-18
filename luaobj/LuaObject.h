@@ -5,7 +5,7 @@
 class LuaObjectImpl;
 class LuaTable;
 
-class LuaObject
+class LUA_API LuaObject
 {
 public:
 	LuaObject();
@@ -37,7 +37,9 @@ public:
 
 	//to
 	lua_Number   toNumber()const;
+	float		 toFloat()const;
 	lua_Integer  toInt()const;
+	unsigned int toUInt()const;
 	bool		 toBool()const;
 	const char*  toString()const;
 	lua_CFunction toCFunction()const;
@@ -71,7 +73,7 @@ protected:
 };
 
 
-extern LuaObject luaNil;//lua nil
+LUA_API extern LuaObject luaNil;//lua nil
 
 namespace StackOps
 {

@@ -40,6 +40,8 @@ public:
 
 	static LuaObjectImpl* createGetRegistery(LuaState* L,const char* key);
 
+	static LuaObjectImpl* createGetRegistery(LuaState* L,int key);
+
 	static LuaObjectImpl* createGetRegistery(LuaState* L,void* key);	
 
 	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,const char* key);

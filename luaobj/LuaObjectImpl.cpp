@@ -157,6 +157,13 @@ LuaObjectImpl* LuaObjectImpl::createGetRegistery(LuaState* L,const char* key)
 	return createFromTop(L);
 }
 
+LuaObjectImpl* LuaObjectImpl::createGetRegistery(LuaState* L,int key)
+{
+	lua_pushinteger(L->getLuaState(), key);   /* push kry*/
+	lua_gettable(L->getLuaState(), LUA_REGISTRYINDEX);  /* retrieve value */
+	return createFromTop(L);
+}
+
 LuaObjectImpl* LuaObjectImpl::createGetRegistery(LuaState* L,void* key)
 {
 	lua_pushlightuserdata(L->getLuaState(), key);   /* push kry*/
