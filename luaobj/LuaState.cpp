@@ -355,6 +355,42 @@ void LuaState::error(const char* fmt,...)
 }
 
 
+void LuaState::addSearchPath(const char* path)
+{
+	lua_getglobal(m_ls, "package");                                  /* L: package */
+	lua_getfield(m_ls, -1, "path");                /* get package.path, L: package path */
+	const char* cur_path =  lua_tostring(m_ls, -1);
+	lua_pushfstring(m_ls, "%s;%s/?.lua", cur_path, path);            /* L: package path newpath */
+	lua_setfield(m_ls, -3, "path");          /* package.path = newpath, L: package path */
+	lua_pop(m_ls, 2);                                                /* L: - */
+}
+
+void LuaState::addLuaLoader(lua_CFunction func)
+{
+	if (!func) return;
+
+	// stack content after the invoking of the function
+	// get loader table
+	lua_getglobal(m_ls, "package");                                  /* L: package */
+	lua_getfield(m_ls, -1, "loaders");                               /* L: package, loaders */
+
+	// insert loader into index 2
+	lua_pushcfunction(m_ls, func);                                   /* L: package, loaders, func */
+	for (int i = (int)(lua_objlen(m_ls, -2) + 1); i > 2; --i)
+	{
+		lua_rawgeti(m_ls, -2, i - 1);                                /* L: package, loaders, func, function */
+		// we call lua_rawgeti, so the loader table now is at -3
+		lua_rawseti(m_ls, -3, i);                                    /* L: package, loaders, func */
+	}
+	lua_rawseti(m_ls, -2, 2);                                        /* L: package, loaders */
+
+	// set loaders into package
+	lua_setfield(m_ls, -2, "loaders");                               /* L: package */
+
+	lua_pop(m_ls, 1);
+}
+
+
 
 void LuaState::enumStack()
 {

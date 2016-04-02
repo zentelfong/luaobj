@@ -107,7 +107,8 @@ public:
 	int getTop(){return lua_gettop(m_ls);}
 
 	LuaObjectStack* getStack(){return &m_stack;}
-
+	void addSearchPath(const char* path);
+	void addLuaLoader(lua_CFunction func);
 	void enumStack();
 protected:
 	lua_State* m_ls;
