@@ -6,48 +6,13 @@ extern "C" {
 	#include "../lua/lauxlib.h"
 }
 
+#include "LuaMacro.h"
 #include <string.h>
-#include <assert.h>
 #include <string>
-#include "MemPool.h"
 #include "Utf.h"
 
-#ifdef WIN32
-#include <Windows.h>
-#else
-#include <pthread.h>
-#endif
 
-
-#define ZTLUA_NAME_OF_NAMESPACE luaobj
-
-#ifdef WIN32
- #define TLSVAR			DWORD
- #define TLSALLOC(k)	(*(k)=TlsAlloc(), TLS_OUT_OF_INDEXES==*(k))
- #define TLSFREE(k)		(!TlsFree(k))
- #define TLSSET(k, a)	(!TlsSetValue(k, a))
-
- #ifdef DEBUG
-  inline LPVOID CheckedTlsGetValue(DWORD idx)
-  {
-	LPVOID ret=TlsGetValue(idx);
-	assert(S_OK==GetLastError());
-	return ret;
-  }
-  #define TLSGET(k) CheckedTlsGetValue(k)
- #else
-  #define TLSGET(k)		TlsGetValue(k)
- #endif
-
-#else
- #define TLSVAR			pthread_key_t
- #define TLSALLOC(k)	pthread_key_create(k, 0)
- #define TLSFREE(k)		pthread_key_delete(k)
- #define TLSGET(k)		pthread_getspecific(k)
- #define TLSSET(k, a)	pthread_setspecific(k, a)
-#endif
-
-class LUA_API TlsValue
+class LUAOBJ_API TlsValue
 {
 public:
 	TlsValue()

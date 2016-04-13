@@ -3,7 +3,7 @@
 #include "LuaObject.h"
 #include "LuaStack.h"
 
-class LUA_API LuaTable:public LuaObject
+class LUAOBJ_API LuaTable:public LuaObject
 {
 public:
 	LuaTable(LuaState* L);

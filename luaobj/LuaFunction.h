@@ -30,7 +30,7 @@
 		}
 
 //调用lua函数使用,如果脚本错误会抛出C++异常
-class LUA_API LuaFunction:public LuaObject
+class LUAOBJ_API LuaFunction:public LuaObject
 {
 public:
 	LuaFunction(LuaState* L);

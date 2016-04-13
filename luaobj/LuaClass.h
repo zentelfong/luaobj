@@ -2,8 +2,8 @@
 #include "LuaCommon.h"
 #include "LuaObject.h"
 
-//luaclass 注册的对象都是该类的之类,dynamic_cast检查指针的有效性
-class LUA_API LuaClassObj
+//luaclass 注册的对象都是该类的子类,dynamic_cast检查指针的有效性
+class LUAOBJ_API LuaClassObj
 {
 protected:
 	virtual ~LuaClassObj(){}
@@ -18,7 +18,7 @@ public:
 
   static void Register(lua_State* L)
   {
-	Register(L,NULL);
+	  Register(L,NULL);
   }
 
   template<class T>
@@ -117,12 +117,11 @@ public:
   }
 
 
-  static LuaClassObj* luaToC(LuaObject obj)
+  static T* luaToC(LuaObject obj)
   {
-
 	userdataType *ud=(userdataType*)obj.toData();
 	if (ud)
-		return ud->pT;
+		return dynamic_cast<T*>(ud->pT);
 	else
 		return NULL;
   }

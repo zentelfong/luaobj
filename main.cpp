@@ -160,24 +160,27 @@ TEST(LuaObj,TestTableIterator)
 
 
 
-class Test
+class Test:public LuaClassObj
 {
 public:
 	Test(int i)
+		:m_mem(i)
 	{
 
 	}
 	void test(const char* test)
 	{
-		printf("Test:%s\n",test);
+		printf("Test%d:%s\n",m_mem,test);
 	}
+private:
+	int m_mem;
 };
 
 
-class Test2:public Test
+class LTest:public Test
 {
 public:
-	Test2(LuaFuncState& L)
+	LTest(LuaFuncState& L)
 		:Test(L.arg(0).toInt())
 	{
 	}
@@ -188,14 +191,14 @@ public:
 		return 0;
 	}
 
-	BEGIN_MAP_FUNC(Test2,"cc.Test")
-		DECLARE_METHOD(test),
+	BEGIN_MAP_FUNC(LTest,"cc.Test")
+		DECLARE_FUNC(test),
 	END_MAP_FUNC
 };
 
 
 
-class Parent
+class Parent:public LuaClassObj
 {
 public:
 	void test(const char* test)
@@ -228,7 +231,7 @@ public:
 	}
 
 	BEGIN_MAP_FUNC(LParent,"cc.Parent")
-		DECLARE_METHOD(test),
+		DECLARE_FUNC(test),
 	END_MAP_FUNC
 };
 
@@ -246,7 +249,7 @@ public:
 	}
 
 	BEGIN_MAP_FUNC(LChild,"cc.Child")
-		DECLARE_METHOD(test2),
+		DECLARE_FUNC(test2),
 	END_MAP_FUNC
 };
 
@@ -260,11 +263,11 @@ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 	int rtn= RUN_ALL_TESTS();
 
-	LuaClass<Test2>::Register(L->getLuaState());
+	LuaClass<LTest>::Register(L->getLuaState());
 	LuaClass<LParent>::Register(L->getLuaState());
 	LuaClass<LChild>::Register<LParent>(L->getLuaState());
 
-	L->doString("local test=cc.Test.new();test:test('test')");
+	L->doString("local test=cc.Test.new(123);test:test('test')");
 	L->doString("local test=cc.Parent.new();test:test('test')");
 	L->doString("local test=cc.Child.new();test:test('test');test:test2('test')");
 	getchar();

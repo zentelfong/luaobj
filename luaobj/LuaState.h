@@ -4,9 +4,9 @@
 #include "LuaTable.h"
 #include "LuaException.h"
 #include "LuaStack.h"
+#include "MemPool.h"
 
-
-class LUA_API LuaObjectStack
+class LUAOBJ_API LuaObjectStack
 {
 public:
 	LuaObjectStack();
@@ -24,7 +24,7 @@ private:
 	int m_use;
 };
 
-class LUA_API LuaMalloc
+class LUAOBJ_API LuaMalloc
 {
 public:
 	LuaMalloc(lua_State* L);
@@ -37,7 +37,7 @@ private:
 };
 
 
-class LUA_API LuaState
+class LUAOBJ_API LuaState
 {
 public:
 	LuaState(lua_State* L);
@@ -116,7 +116,7 @@ protected:
 };
 
 
-class LUA_API LuaFuncState:public LuaState
+class LUAOBJ_API LuaFuncState:public LuaState
 {
 public:
 	enum{
@@ -183,7 +183,7 @@ private:
 };
 
 
-class LUA_API LuaOwnerState:public LuaState
+class LUAOBJ_API LuaOwnerState:public LuaState
 {
 public:
 	LuaOwnerState();
@@ -203,7 +203,7 @@ private:
 
 
 
-class LUA_API LuaAutoState:public LuaOwnerState
+class LUAOBJ_API LuaAutoState:public LuaOwnerState
 {
 public:
 	LuaAutoState();

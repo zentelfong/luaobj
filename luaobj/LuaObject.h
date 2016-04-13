@@ -5,7 +5,7 @@
 class LuaObjectImpl;
 class LuaTable;
 
-class LUA_API LuaObject
+class LUAOBJ_API LuaObject
 {
 public:
 	LuaObject();
@@ -73,7 +73,7 @@ protected:
 };
 
 
-LUA_API extern LuaObject luaNil;//lua nil
+LUAOBJ_API extern LuaObject luaNil;//lua nil
 
 namespace StackOps
 {

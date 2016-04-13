@@ -151,9 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\luaobj\ConvertUTF.h" />
-    <ClInclude Include="..\luaobj\LuaBind.h" />
     <ClInclude Include="..\luaobj\LuaClass.h" />
+    <ClInclude Include="..\luaobj\LuaMacro.h" />
     <ClInclude Include="..\luaobj\LuaRegister.h" />
     <ClInclude Include="..\luaobj\LuaCommon.h" />
     <ClInclude Include="..\luaobj\LuaException.h" />
@@ -166,10 +165,8 @@
     <ClInclude Include="..\luaobj\Luaobj.h" />
     <ClInclude Include="..\luaobj\MemPool.h" />
     <ClInclude Include="..\luaobj\Utf.h" />
-    <ClInclude Include="LuaTypes.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\luaobj\ConvertUTF.c" />
     <ClCompile Include="..\luaobj\LuaFunction.cpp" />
     <ClCompile Include="..\luaobj\LuaObject.cpp" />
     <ClCompile Include="..\luaobj\LuaObjectImpl.cpp" />
