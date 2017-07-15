@@ -160,7 +160,7 @@ TEST(LuaObj,TestTableIterator)
 
 
 
-class Test:public LuaClassObj
+class Test
 {
 public:
 	Test(int i)
@@ -177,17 +177,17 @@ private:
 };
 
 
-class LTest:public Test
+class LTest:public LuaClass<Test>
 {
 public:
-	LTest(LuaFuncState& L)
-		:Test(L.arg(0).toInt())
+	void ctor(LuaFuncState& L)
 	{
+		pThis = new Test(L.arg(0).toInt());
 	}
 
 	int test(LuaFuncState& L)
 	{
-		Test::test(L.arg(0).toString());
+		pThis->test(L.arg(0).toString());
 		return 0;
 	}
 
@@ -198,7 +198,7 @@ public:
 
 
 
-class Parent:public LuaClassObj
+class Parent
 {
 public:
 	void test(const char* test)
@@ -218,15 +218,16 @@ public:
 
 
 
-class LParent:public Parent
+class LParent:public LuaClass<Parent>
 {
 public:
-	LParent(LuaFuncState& L)
+	void ctor(LuaFuncState& L)
 	{
+		pThis = new Parent();
 	}
 	int test(LuaFuncState& L)
 	{
-		Parent::test(L.arg(0).toString());
+		pThis->test(L.arg(0).toString());
 		return 0;
 	}
 
@@ -235,16 +236,17 @@ public:
 	END_MAP_FUNC
 };
 
-class LChild:public Child
+class LChild :public LuaClass<Child>
 {
 public:
-	LChild(LuaFuncState& L)
+	void ctor(LuaFuncState& L)
 	{
+		pThis = new Child();
 	}
 
 	int test2(LuaFuncState& L)
 	{
-		Child::test(L.arg(0).toString());
+		pThis->test(L.arg(0).toString());
 		return 0;
 	}
 
@@ -263,13 +265,13 @@ int main(int argc, char **argv)
 	testing::InitGoogleTest(&argc, argv);
 	int rtn= RUN_ALL_TESTS();
 
-	LuaClass<LTest>::Register(L->getLuaState());
-	LuaClass<LParent>::Register(L->getLuaState());
-	LuaClass<LChild>::Register<LParent>(L->getLuaState());
+	LuaRegister<LTest>::Register(L->getLuaState());
+	LuaRegister<LParent>::Register(L->getLuaState());
+	LuaRegister<LChild>::Register<LParent>(L->getLuaState());
 
-	L->doString("local test=cc.Test.new(123);test:test('test')");
-	L->doString("local test=cc.Parent.new();test:test('test')");
-	L->doString("local test=cc.Child.new();test:test('test');test:test2('test')");
+	L->doString("local test=cc.Test.new(123);test:test('test1')");
+	L->doString("local test=cc.Parent.new();test:test('test2')");
+	L->doString("local test=cc.Child.new();test:test('test');test:test2('test3')");
 	getchar();
 	return rtn;
 }
