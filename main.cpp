@@ -52,7 +52,7 @@ TEST(LuaObj,TestValue)
 	EXPECT_TRUE(false==lfalse.toBool());
 
 	int data=0x2312321;
-	LuaObject ldata=L->newData(&data,sizeof(data));
+	LuaObject ldata=L->newData(sizeof(data),&data);
 	EXPECT_TRUE(data==*(int*)ldata.toData() && ldata.objLen()==sizeof(data));
 
 	void *p=(void*)0x32432;
@@ -137,8 +137,8 @@ TEST(LuaObj,TestCppPerformance)
 
 TEST(LuaObj,TestGetField)
 {
-	L->doString("a={b={c=123}}");
-
+	//L->doString("a={b={c=123}}");
+	L->setField("a.b.c",L->newInt(123));
 	LuaObject obj=L->getField("a.b.c");
 	EXPECT_EQ(obj.toInt(),123);
 }
@@ -163,6 +163,8 @@ TEST(LuaObj,TestTableIterator)
 class Test
 {
 public:
+	LUAOBJ_CLASS_NAME("cc.Test");
+
 	Test(int i)
 		:m_mem(i)
 	{
@@ -201,15 +203,24 @@ public:
 class Parent
 {
 public:
+	LUAOBJ_CLASS_NAME("cc.Parent");
+
 	void test(const char* test)
 	{
 		printf("Parent:%s\n",test);
+	}
+
+	void test2(Test* test)
+	{
+		test->test("Parent");
 	}
 };
 
 class Child:public Parent
 {
 public:
+	LUAOBJ_CLASS_NAME("cc.Child");
+
 	void test(const char* test)
 	{
 		printf("Child:%s\n",test);
@@ -221,33 +232,39 @@ public:
 class LParent:public LuaClass<Parent>
 {
 public:
-	void ctor(LuaFuncState& L)
-	{
-		pThis = new Parent();
-	}
+
 	int test(LuaFuncState& L)
 	{
 		pThis->test(L.arg(0).toString());
 		return 0;
 	}
 
+	int test2(LuaFuncState& L)
+	{
+		Test* test=LuaClass<Test>::toC(L.arg(0));
+		pThis->test2(test);
+		return 0;
+	}
+
 	BEGIN_MAP_FUNC(LParent,"cc.Parent")
 		DECLARE_FUNC(test),
+		DECLARE_FUNC(test2),
 	END_MAP_FUNC
 };
 
 class LChild :public LuaClass<Child>
 {
 public:
-	void ctor(LuaFuncState& L)
-	{
-		pThis = new Child();
-	}
 
 	int test2(LuaFuncState& L)
 	{
 		pThis->test(L.arg(0).toString());
 		return 0;
+	}
+
+	void dtor()
+	{
+		delete pThis;
 	}
 
 	BEGIN_MAP_FUNC(LChild,"cc.Child")
@@ -256,22 +273,77 @@ public:
 };
 
 
+//æ≤Ã¨¿‡
+class StaticClass
+{
+public:
+	LUAOBJ_CLASS_NAME("cc.Static");
 
-int main(int argc, char **argv)
+	static StaticClass* Instance()
+	{
+		static StaticClass sc;
+		return &sc;
+	}
+
+	void test(const char* test)
+	{
+		printf("Static:%s\n",test);
+	}
+
+};
+
+class LStaticClass :public LuaClass<StaticClass>
+{
+public:
+
+	void instance(LuaFuncState& L)
+	{
+		pThis=StaticClass::Instance();
+	}
+
+	int test(LuaFuncState& L)
+	{
+		pThis->test(L.arg(0).toString());
+		return 0;
+	}
+
+
+	BEGIN_MAP_FUNC(LStaticClass,"cc.Static")
+		DECLARE_FUNC(test),
+	END_MAP_FUNC
+};
+
+
+
+
+
+int test()
 {
 	LuaAutoState luaEngine;
 	L=&luaEngine;
-
-	testing::InitGoogleTest(&argc, argv);
 	int rtn= RUN_ALL_TESTS();
 
 	LuaRegister<LTest>::Register(L->getLuaState());
 	LuaRegister<LParent>::Register(L->getLuaState());
 	LuaRegister<LChild>::Register<LParent>(L->getLuaState());
 
+	LuaRegister<LStaticClass>::RegisterStatic(L->getLuaState());
+
+
 	L->doString("local test=cc.Test.new(123);test:test('test1')");
-	L->doString("local test=cc.Parent.new();test:test('test2')");
+	L->doString("local test=cc.Parent.new();test:test('test2');test:test2(cc.Test.new(222))");
 	L->doString("local test=cc.Child.new();test:test('test');test:test2('test3')");
+
+	L->doString("cc.Static.instance();");
+	L->doString("local test1=cc.Static.instance();test1:test('ddddd')");
+	return rtn;
+}
+
+
+int main(int argc, char **argv)
+{
+	testing::InitGoogleTest(&argc, argv);	
+	int rtn=test();
 	getchar();
 	return rtn;
 }

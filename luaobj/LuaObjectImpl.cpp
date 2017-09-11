@@ -127,13 +127,13 @@ LuaObjectImpl* LuaObjectImpl::create(LuaState* L,LuaCFunction f)
 	return createFromTop(L);
 }
 
-LuaObjectImpl* LuaObjectImpl::create(LuaState* L,void* ud,size_t len)
+LuaObjectImpl* LuaObjectImpl::create(LuaState* L,size_t len,void* ud)
 {
 	void* mem=lua_newuserdata(L->getLuaState(),len);
-	memcpy(mem,ud,len);
+	if(ud)
+		memcpy(mem,ud,len);
 	return createFromTop(L);
 }	
-
 
 
 LuaObjectImpl* LuaObjectImpl::createTable(LuaState* L)
@@ -185,7 +185,12 @@ LuaObjectImpl* LuaObjectImpl::createGetTable(LuaState* L,LuaObjectImpl* tab,lua_
 	return createFromTop(L);
 }
 
-
+LuaObjectImpl* LuaObjectImpl::createGetTable(LuaState* L,LuaObjectImpl* tab,void* key)
+{
+	lua_pushlightuserdata(L->getLuaState(),key);
+	lua_gettable(L->getLuaState(),tab->getIndex());
+	return createFromTop(L);
+}
 
 
 

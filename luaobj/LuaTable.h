@@ -17,6 +17,7 @@ public:
 	//lua表操作
 	LuaObject getTable(const char* key);
 	LuaObject getTable(lua_Integer idx);
+	LuaObject getTable(void* idx);
 
 	LuaObject operator[](const char* key);
 	LuaObject operator[](lua_Integer idx);
@@ -24,6 +25,8 @@ public:
 
 	bool setTable(const char* key,LuaObject val);
 	bool setTable(lua_Integer key,LuaObject val);
+
+	bool setTable(void* key,LuaObject val);
 
 	inline size_t count()const{return objLen();}
 

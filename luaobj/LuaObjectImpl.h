@@ -31,7 +31,7 @@ public:
 	static LuaObjectImpl* create(LuaState* L,LuaCFunction f);
 
 
-	static LuaObjectImpl* create(LuaState* L,void* ud,size_t len);
+	static LuaObjectImpl* create(LuaState* L,size_t len,void* ud);
 
 	static LuaObjectImpl* createTable(LuaState* L);
 
@@ -47,6 +47,8 @@ public:
 	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,const char* key);
 
 	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,lua_Integer key);
+	
+	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,void* key);
 
 	//释放
 	void free();

@@ -57,9 +57,7 @@ public:
 	getField("test.a")
 	*/
 	LuaObject getField(const char* name);
-
-	//TODO:impl this
-	//void setField(const char* name,LuaObject obj);
+	void setField(const char* name,LuaObject obj);
 
 
 	LuaObject getRegistery(const char* key);
@@ -78,7 +76,8 @@ public:
 	LuaObject newString(const wchar_t*,int len=-1);
 
 	LuaObject newPtr(void* p);//light userdata
-	LuaObject newData(void* p,size_t sz);//userdata
+	LuaObject newData(size_t sz,void* p=NULL);//userdata
+
 
 	LuaObject newBool(bool);
 	LuaObject newFunction(lua_CFunction);

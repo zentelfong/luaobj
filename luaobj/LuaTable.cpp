@@ -46,6 +46,14 @@ LuaObject LuaTable::getTable(lua_Integer key)
 		return luaNil;
 }
 
+LuaObject LuaTable::getTable(void* key)
+{
+	if(isValid())
+		return LuaObjectImpl::createGetTable(m_ptr->getCppLuaState(),m_ptr,key);
+	else
+		return luaNil;
+}
+
 LuaObject LuaTable::operator[](const char* key)
 {
 	if(isValid())
@@ -77,6 +85,23 @@ bool LuaTable::setTable(const char* key,LuaObject val)
 	}
 	return false;
 }
+
+bool LuaTable::setTable(void* key,LuaObject val)
+{
+	if(isValid())
+	{
+		lua_State* L=m_ptr->getLuaState();
+		lua_pushlightuserdata(L,key);//key
+		if(val.isNone())
+			lua_pushnil(L);
+		else
+			lua_pushvalue(L,val.getIndex());//value
+		lua_settable(L,getIndex());
+		return true;
+	}
+	return false;
+}
+
 
 bool LuaTable::setTable(lua_Integer key,LuaObject val)
 {

@@ -3,10 +3,34 @@
 #include "LuaObject.h"
 #include "LuaState.h"
 
+#ifndef LUAOBJ_CLASS_NAME
+#define LUAOBJ_CLASS_NAME(Name) \
+public: \
+	virtual const char* className(){ return Name; } \
+	static inline const char*  sClassName(){ return Name; } \
+
+#endif
+
 template <typename T> class LuaClass
 {
 public:
 	typedef T this_t;
+
+	//如果子类未实现则调用该实现
+	void ctor(LuaFuncState&)
+	{
+		pThis = new this_t();
+	}
+
+	void instance(LuaFuncState&)
+	{
+	}
+
+	void dtor()
+	{
+		delete pThis;
+	}
+
 	static T* toC(LuaObject obj)
 	{
 		if (obj.isUData())
@@ -25,31 +49,64 @@ public:
 		return NULL;
 	}
 
-	static LuaObject toLua(LuaState* Lp, T* obj, bool release = false)
+	static LuaObject toLua(LuaState* L, T* obj)
 	{
-		lua_State* L = Lp->getLuaState();
-		LuaClass *ud = static_cast<LuaClass*>(lua_newuserdata(L, sizeof(LuaClass)));
-		ud->pThis = obj;  // store pointer to object in userdata
-		ud->owner = release;
+		if(!obj)
+			return L->newNil();
 
-		const char* find = strstr(T::className(), ".");
-		if (find)
+		LuaTable lCache=getObjCacheTable(L);
+
+		LuaObject lobj=lCache.getTable((void*)obj);
+		if (lobj.isUData())
 		{
-			lua_pushlstring(L, T::className(), find - T::className());
-			lua_gettable(L, LUA_GLOBALSINDEX);
-			lua_getfield(L, -1, find + 1);
-			lua_remove(L, -2);
+			LuaClass* ud=static_cast<LuaClass*>(lobj.toData());
+			if(ud->pThis==obj)
+			{
+				return lobj;
+			}
+			assert(ud->pThis==NULL);
 		}
-		else
-			lua_getglobal(L, T::className());  // lookup metatable in Lua registry
-		lua_setmetatable(L, -2);
-		return LuaObject(Lp, lua_gettop(L));
+
+		lobj=L->newData(sizeof(LuaClass));
+		LuaClass* ud=static_cast<LuaClass*>(lobj.toData());
+		ud->pThis=obj;
+		lobj.setMetatable(L->getField(obj->className()));
+		lCache.setTable(obj,lobj);
+		return lobj;
 	}
 
 
+	static void deleteByC(LuaState* L,T* obj)
+	{
+		LuaTable lCache = getObjCacheTable(L);
+		LuaObject lobj=lCache.getTable((void*)obj);
+		if (lobj.isUData())
+		{
+			LuaClass* ud=static_cast<LuaClass*>(lobj.toData());
+			ud->pThis=NULL;//lua中调用前会检测该指针
+		}
+	}
+
+	static LuaTable getObjCacheTable(LuaState* L)
+	{
+		LuaTable lCache=L->getRegistery("LuaObjCache");
+		if(!lCache.isTable())
+		{
+			lCache=L->newTable();
+			lCache.setTable("__mode","v");
+			lCache.setMetatable(lCache);
+			L->setRegistry("LuaObjCache",lCache);
+		}
+		return lCache;
+	}
+
+	static const char* className()
+	{
+		const char* name=T::sClassName();
+		return T::sClassName();
+	}
 public:
 	T *pThis;
-	bool owner;
 };
 
 
@@ -72,7 +129,8 @@ public:
 	}
 
 
-	static void Register(lua_State *L, const char* parentClassName) {
+	static void Register(lua_State *L, const char* parentClassName) 
+	{
 		lua_newtable(L);
 		int methods = lua_gettop(L);
 
@@ -165,18 +223,116 @@ public:
 		lua_pop(L, 1);  // drop metatable and method table
 	}
 
+
+	static void RegisterStatic(lua_State* L)
+	{
+		RegisterStatic(L, NULL);
+	}
+
+	template<class T2>
+	static void RegisterStatic(lua_State* L)
+	{
+		RegisterStatic(L, T2::className());
+	}
+
+	static void RegisterStatic(lua_State *L, const char* parentClassName) 
+	{
+		lua_newtable(L);
+		int methods = lua_gettop(L);
+
+		// store method table in globals so that
+		// scripts can add functions written in Lua.
+		const char* find = strstr(T::className(), ".");
+		if (find)
+		{
+			lua_pushlstring(L, T::className(), find - T::className());
+			lua_gettable(L, LUA_GLOBALSINDEX);
+			if (!lua_istable(L, -1))
+			{
+				lua_newtable(L);
+				lua_pushlstring(L, T::className(), find - T::className());
+				lua_pushvalue(L, -2);
+				lua_settable(L, LUA_GLOBALSINDEX);
+			}
+			assert(lua_type(L, -1) == LUA_TTABLE);
+			lua_pushstring(L, find + 1);
+			lua_pushvalue(L, methods);
+			lua_settable(L, -3);
+			lua_pop(L, 1);
+		}
+		else
+		{
+			lua_pushstring(L, T::className());
+			lua_pushvalue(L, methods);
+			lua_settable(L, LUA_GLOBALSINDEX);
+		}
+
+		if (parentClassName)
+		{
+			const char* find = strstr(parentClassName, ".");
+			if (find)
+			{
+				lua_pushlstring(L, parentClassName, find - parentClassName);
+				lua_gettable(L, LUA_GLOBALSINDEX);
+				lua_getfield(L, -1, find + 1);
+				lua_remove(L, -2);
+
+				assert(lua_type(L, -1) == LUA_TTABLE);
+				lua_setmetatable(L, methods);
+			}
+			else
+			{
+				lua_getglobal(L, parentClassName);
+				assert(lua_type(L, -1) == LUA_TTABLE);
+				lua_setmetatable(L, methods);
+			}
+		}
+
+		lua_pushliteral(L, "__index");
+		lua_pushvalue(L, methods);
+		if (!lua_getmetatable(L, methods))
+			lua_pushnil(L);
+		lua_pushcclosure(L, index_T, 2);
+
+		lua_settable(L, methods);
+
+		lua_pushliteral(L, "__tostring");
+		lua_pushcfunction(L, tostring_T);
+		lua_settable(L, methods);
+
+		lua_pushliteral(L, "instance");
+		lua_pushcfunction(L, instance_T);
+		lua_settable(L, methods);
+
+		lua_pushliteral(L, "__ctype");
+		lua_pushinteger(L, 1);
+		lua_settable(L, methods);
+
+
+		// fill method table with methods from class T
+		for (RegType *l = T::methods(); l->name; l++) {
+			/* edited by Snaily: shouldn't it be const RegType *l ... ? */
+			lua_pushstring(L, l->name);
+			lua_pushlightuserdata(L, (void*)l);
+			lua_pushcclosure(L, thunk_T, 1);
+			lua_settable(L, methods);
+		}
+
+		lua_pop(L, 1);  // drop metatable and method table
+	}
+
 private:
 	LuaRegister();  // hide default constructor
 
 	/*
 	cls.__index=function(t,k)
-	local ret=cls[k]
-	if ret then
-	return ret
-	end
-	ret=super[k]
-	cls[k]=ret
-	return ret
+		local ret=cls[k]
+		if ret then
+			return ret
+		end
+		ret=super[k]
+		cls[k]=ret
+		return ret
 	end
 	*/
 
@@ -251,7 +407,8 @@ private:
 			assert(false);
 		}
 
-		if (obj)
+		//pThis可能会被c++释放掉，而lua中任然包含该引用，故检测下
+		if (obj && obj->pThis)
 		{
 			lua_remove(L, 1);  // remove self so member function args start at index 1
 			RegType *l = static_cast<RegType*>(lua_touserdata(L, lua_upvalueindex(1)));
@@ -273,44 +430,69 @@ private:
 
 	// create a new T object and
 	// push onto the Lua stack a userdata containing a pointer to T object
-	static int new_T(lua_State *l) {
-
+	static int new_T(lua_State *l) 
+	{
 		LuaFuncState L(l);
-		//T *obj = new T(L);  // call constructor for T objects
-		T *ud = static_cast<T*>(lua_newuserdata(l, sizeof(T)));
+		LuaObject lud = L.newData(sizeof(T));
+		T *ud =static_cast<T*>(lud.toData());
 		ud->pThis = NULL;  // store pointer to object in userdata
-		ud->owner = true;
-		ud->ctor(L);//ud不是new出来的所以要显式调用构造函数
-		const char* find = strstr(T::className(), ".");
-		if (find)
+		ud->ctor(L);
+
+		LuaTable lMeta=L.getField(T::className());
+		if(!lMeta.isTable())
 		{
-			lua_pushlstring(l, T::className(), find - T::className());
-			lua_gettable(l, LUA_GLOBALSINDEX);
-			lua_getfield(l, -1, find + 1);
-			lua_remove(l, -2);
+			lMeta=L.newTable();
+			L.setField(T::className(),lMeta);
 		}
-		else
-			lua_getglobal(l, T::className());  // lookup metatable in Lua registry
-		lua_setmetatable(l, -2);
-		return 1;  // userdata containing pointer to T object
+		lud.setMetatable(lMeta);
+
+		//设置到cache表中
+		LuaTable lcache=T::getObjCacheTable(&L);
+		lcache.setTable((void*)ud->pThis,lud);
+
+		return L.lreturn(lud);
+	}
+
+	static int instance_T(lua_State *l) 
+	{
+		LuaFuncState L(l);
+		LuaObject lud = L.newData(sizeof(T));
+		T *ud =static_cast<T*>(lud.toData());
+		ud->pThis = NULL;  // store pointer to object in userdata
+		ud->instance(L);
+
+		LuaTable lMeta=L.getField(T::className());
+		if(!lMeta.isTable())
+		{
+			lMeta=L.newTable();
+			L.setField(T::className(),lMeta);
+		}
+		lud.setMetatable(lMeta);
+
+		//设置到cache表中
+		LuaTable lcache=T::getObjCacheTable(&L);
+		lcache.setTable((void*)ud->pThis,lud);
+
+		return L.lreturn(lud);
 	}
 
 	// garbage collection metamethod
-	static int gc_T(lua_State *L) {
+	static int gc_T(lua_State *L) 
+	{
 		T *ud = static_cast<T*>(lua_touserdata(L, 1));
 		if (ud)
 		{
-			if (ud->owner && ud->pThis)
+			if (ud->pThis)
 			{
-				delete ud->pThis;
-				//ud->pThis->release();
+				ud->dtor();
 				ud->pThis = NULL;
 			}
 		}
 		return 0;
 	}
 
-	static int tostring_T(lua_State *L) {
+	static int tostring_T(lua_State *L) 
+	{
 
 		switch (lua_type(L, 1))
 		{
@@ -402,8 +584,7 @@ LuaClassRegister<LTest>::Register(L);
 
 #define DECLARE_FUNC(Name) {#Name, &selfClass::Name}
 
-#define BEGIN_MAP_FUNC(_class,_className) \
-	static const char* className(){ return _className; }\
+#define BEGIN_MAP_FUNC(_class) \
 	typedef _class selfClass; \
 	static LuaRegister<_class>::RegType * methods()\
 {\

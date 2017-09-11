@@ -194,7 +194,33 @@ LuaObject LuaState::getField(const char* name)
 		return luaNil;
 }
 
+void LuaState::setField(const char* name,LuaObject obj)
+{
+	char buf[128];
+	name=getFieldName(name,buf,sizeof(buf));
+	LuaTable lg=getGlobal(buf);
+	if(!lg.isValid())
+	{
+		lg=newTable();
+		setGlobal(buf,lg);
+	}
 
+	while (lg.isValid() && *name)
+	{
+		name=getFieldName(name,buf,sizeof(buf));
+		if(*name=='\0')
+			break;
+		LuaTable ltab=lg.getTable(buf);
+		if(!ltab.isValid())
+		{
+			ltab=newTable();
+			lg.setTable(buf,ltab);
+		}
+		lg=ltab;
+	}
+
+	lg.setTable(buf,obj);
+}
 
 
 
@@ -235,9 +261,9 @@ LuaObject LuaState::newPtr(void* p)
 	return LuaObjectImpl::create(this,p);
 }
 
-LuaObject LuaState::newData(void* p,size_t sz)
+LuaObject LuaState::newData(size_t sz,void* p)
 {
-	return LuaObjectImpl::create(this,p,sz);
+	return LuaObjectImpl::create(this,sz,p);
 }
 
 
