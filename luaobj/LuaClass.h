@@ -102,7 +102,6 @@ public:
 
 	static const char* className()
 	{
-		const char* name=T::sClassName();
 		return T::sClassName();
 	}
 public:
@@ -383,8 +382,6 @@ private:
 		// stack has userdata, followed by method args
 		// get 'self', or if you prefer, 'this'
 		T * obj = NULL;
-		bool owner = false;
-
 		if (lua_isuserdata(L, 1))
 		{
 			obj = (T*)lua_touserdata(L, 1);

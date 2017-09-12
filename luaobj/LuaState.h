@@ -4,7 +4,28 @@
 #include "LuaTable.h"
 #include "LuaException.h"
 #include "LuaStack.h"
-#include "MemPool.h"
+
+#include "malloc/dlmalloc.h"
+
+#ifdef NEDMALLOC_H
+typedef nedpool* mempoll_t;
+
+#define mempollcreate nedcreatepool
+#define mempolldestroy neddestroypool
+#define mempollmalloc nedpmalloc
+#define mempollrealloc nedprealloc
+#define mempollfree nedpfree
+
+#elif DLMALLOC_VERSION
+
+typedef mspace mempoll_t;
+#define mempollcreate create_mspace
+#define mempolldestroy destroy_mspace
+#define mempollmalloc mspace_malloc
+#define mempollrealloc mspace_realloc
+#define mempollfree mspace_free
+
+#endif
 
 class LUAOBJ_API LuaObjectStack
 {
@@ -24,26 +45,12 @@ private:
 	int m_use;
 };
 
-class LUAOBJ_API LuaMalloc
-{
-public:
-	LuaMalloc(lua_State* L);
-	void* malloc(size_t bytes);
-	void  free(void* mem);
-	void* realloc(void* mem, size_t newsize);
-private:
-	void* m_udata;
-	lua_Alloc m_alloc;
-};
-
 
 class LUAOBJ_API LuaState
 {
 public:
 	LuaState(lua_State* L);
 	~LuaState(void);
-
-	LuaMalloc getMalloc();
 
 	LuaObject getGlobal(const char* name);
 	void setGlobal(const char* name,LuaObject obj);
@@ -190,13 +197,11 @@ public:
 
 	static void * luaAlloc(void *ud, void *ptr, size_t osize, size_t nsize);//内存分配
 
-	MemPool* getMemPool(){return &m_pool;}
-
 	virtual void error(const char* errorMsg,...);
 
 	void setErrorHandler(LuaErrorHandler handler){m_errorHandler=handler;}
 private:
-	MemPool m_pool;//内存分配池
+	mempoll_t m_mempoll;
 	LuaErrorHandler m_errorHandler;//错误处理函数
 };
 

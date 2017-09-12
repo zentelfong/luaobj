@@ -50,9 +50,6 @@ public:
 	
 	static LuaObjectImpl* createGetTable(LuaState* L,LuaObjectImpl* tab,void* key);
 
-	//释放
-	void free();
-
 	int addRef()
 	{
 		return ++m_ref;
@@ -63,7 +60,7 @@ public:
 		int count =--m_ref;
 		if (!count) 
 		{
-			free();
+			_free();
 		}
 		return count;
 	}
@@ -82,6 +79,8 @@ public:
 	lua_State* getLuaState();
 	void decIndex(){--m_index;}
 private:
+	//释放
+	void _free();
 	LuaState* m_ls;
 	int m_ref;
 	int m_index;//-1表示未初始化

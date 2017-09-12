@@ -2,7 +2,7 @@
 #include "LuaObjectImpl.h"
 #include "LuaTable.h"
 #include "LuaFunction.h"
-#include "Utf.h"
+#include "LuaUtf.h"
 
 #define MIN_STACK_SIZE 64
 
@@ -70,27 +70,6 @@ void LuaObjectStack::pop(LuaObjectImpl* impl)
 
 
 
-LuaMalloc::LuaMalloc(lua_State* L)
-{
-	m_alloc=lua_getallocf(L,(void**)&m_udata);
-}
-
-void* LuaMalloc::malloc(size_t bytes)
-{
-	return m_alloc(m_udata,NULL,0,bytes);
-}
-
-void  LuaMalloc::free(void* mem)
-{
-	m_alloc(m_udata,mem,0,0);
-}
-
-void* LuaMalloc::realloc(void* mem, size_t newsize)
-{
-	return m_alloc(m_udata,mem,0,newsize); 
-}
-
-
 LuaState::LuaState(lua_State* L)
 	:m_ls(L),m_stack()
 {
@@ -99,11 +78,6 @@ LuaState::LuaState(lua_State* L)
 
 LuaState::~LuaState(void)
 {
-}
-
-LuaMalloc LuaState::getMalloc()
-{
-	return LuaMalloc(m_ls);
 }
 
 LuaObject LuaState::getGlobal(const char* name)
@@ -247,10 +221,10 @@ LuaObject LuaState::newString(const char*str,int len)
 
 LuaObject LuaState::newString(const wchar_t* utf16,int len)
 {
-	int utf8len=UTF16To8(NULL,0,(unsigned short*)utf16,len);
-	UtfBuffer<128> buf;
-	buf.malloc((utf8len+1)*sizeof(char));
-	UTF16To8((char*)buf.getBuf(),utf8len+1,(unsigned short*)utf16,utf8len+1);
+	int utf8len=luaUTF16To8(NULL,0,(unsigned short*)utf16,len);
+	LuaUtfBuffer<128> buf;
+	buf.Resize((utf8len+1)*sizeof(char));
+	luaUTF16To8((char*)buf.getBuf(),utf8len+1,(unsigned short*)utf16,utf8len+1);
 	return LuaObjectImpl::create(this,(char*)buf.getBuf(),utf8len);
 }
 
@@ -522,9 +496,10 @@ int luaSetMetatable(lua_State* L)
 }
 
 LuaOwnerState::LuaOwnerState()
-	:m_pool(0,false),LuaState(NULL),m_errorHandler(NULL)
+	:LuaState(NULL),m_errorHandler(NULL)
 {
-	m_ls=lua_newstate(luaAlloc,&m_pool);
+	m_mempoll = mempollcreate(0, 0);
+	m_ls=lua_newstate(luaAlloc,m_mempoll);
 	luaL_openlibs(m_ls);//初始化库
 
 	lua_pushcfunction(m_ls,luaSetMetatable);
@@ -541,20 +516,20 @@ LuaOwnerState::~LuaOwnerState()
 
 void * LuaOwnerState::luaAlloc(void *ud, void *ptr, size_t, size_t nsize)
 {
-	MemPool *memalloc=(MemPool*)ud;
+	mempoll_t memalloc=(mempoll_t)ud;
 
 	if (nsize == 0) 
 	{
 		if(ptr)
-			memalloc->free(ptr);
+			mempollfree(memalloc,ptr);
 		return NULL;
 	}
 	else
 	{  
 		if(ptr)
-			return memalloc->realloc(ptr,nsize);
+			return mempollrealloc(memalloc,ptr,nsize);
 		else
-			return memalloc->malloc(nsize);
+			return mempollmalloc(memalloc,nsize);
 	}	
 }
 

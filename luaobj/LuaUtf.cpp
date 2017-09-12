@@ -1,4 +1,4 @@
-#include "Utf.h"
+#include "LuaUtf.h"
 #include <stdlib.h>
 
 void EncodeCharUTF8( int nUChar, char* pszUTF8, int& nUTF8Len );
@@ -170,7 +170,7 @@ void EncodeCharUTF8( int nUChar, char* pszUTF8, int& nUTF8Len )
 	}
 }
 
-int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count)
+int luaUTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,int nUTF16Count)
 {
 	int nUChar, nUTF8Len = 0;
 	if(nUTF16Count>=0)
@@ -224,7 +224,7 @@ int UTF16To8( char *pszUTF8, int nUTF8Count, const unsigned short* pwszUTF16 ,in
 
 }
 
-int UTF16To8( char* pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count )
+int luaUTF16To8( char* pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count )
 {
 	// Supports the same arguments as wcstombs
 	// the pwszUTF16 source must be a NULL-terminated UTF-16 string
@@ -257,7 +257,7 @@ int UTF16To8( char* pszUTF8, const unsigned short* pwszUTF16, int nUTF8Count )
 	return nUTF8Len;
 }
 
-int UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count )
+int luaUTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count )
 {
 	// Supports the same arguments as mbstowcs
 	// the pszUTF8 source must be a UTF-8 string which will be processed up to NULL-terminator or nUTF8Count
@@ -291,7 +291,7 @@ int UTF8To16( unsigned short* pwszUTF16, const char* pszUTF8, int nUTF8Count )
 	return nUTF8Len;
 }
 
-int UTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count )
+int luaUTF8To16( unsigned short* pwszUTF16,int nUTF16Count,const char* pszUTF8, int nUTF8Count )
 {
 	const char* pszPosUTF8 = pszUTF8;
 	const char* pszUTF8End = pszUTF8 + nUTF8Count;

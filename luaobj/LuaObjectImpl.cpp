@@ -59,7 +59,7 @@ LuaObjectImpl* LuaObjectImpl::createFromTop(LuaState* L)
 	return createFromIndex(L,lua_gettop(L->getLuaState()));
 }
 
-void LuaObjectImpl::free()
+void LuaObjectImpl::_free()
 {
 	m_ls->getStack()->pop(this);
 	if(m_index>=0)

@@ -1,15 +1,15 @@
 #pragma once
 
 extern "C" {
-	#include "../lua/lua.h"
-	#include "../lua/lualib.h"
-	#include "../lua/lauxlib.h"
+	#include "lua/lua.h"
+	#include "lua/lualib.h"
+	#include "lua/lauxlib.h"
 }
 
 #include "LuaMacro.h"
 #include <string.h>
 #include <string>
-#include "Utf.h"
+#include "LuaUtf.h"
 
 
 class LUAOBJ_API TlsValue

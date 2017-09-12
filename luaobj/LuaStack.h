@@ -48,10 +48,10 @@ namespace StackOps
 
 	inline void Push(lua_State* L, const wchar_t* utf16)
 	{
-		int utf8len=UTF16To8(NULL,(unsigned short*)utf16,0);
-		UtfBuffer<128> buf;
-		buf.malloc(utf8len*sizeof(char));
-		UTF16To8((char*)buf.getBuf(),(unsigned short*)utf16,utf8len);
+		int utf8len=luaUTF16To8(NULL,(unsigned short*)utf16,0);
+		LuaUtfBuffer<128> buf;
+		buf.Resize(utf8len*sizeof(char));
+		luaUTF16To8((char*)buf.getBuf(),(unsigned short*)utf16,utf8len);
 		lua_pushlstring(L,(char*)buf.getBuf(),utf8len);
 	}
 
@@ -113,20 +113,5 @@ namespace StackOps
 		{  (void)L, (void)idx;  return LuaNil();  }
 	inline lua_CFunction	Get(TypeWrapper<lua_CFunction>, lua_State* L, int idx)
 		{  return static_cast<lua_CFunction>(lua_tocfunction(L, idx));  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

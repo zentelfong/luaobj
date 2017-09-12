@@ -28,7 +28,14 @@ private:
 //´íÎó´¦Àíº¯Êý
 typedef int (*LuaErrorHandler) (const char* err);
 
-
-
-
+#ifdef USE_CPP_EXCEPTION
 #define LUA_THROW_EXCEPTION(w) throw LuaException(w,__FILE__,__LINE__)
+#else
+
+inline void print_lua_error_info(const char* w, const char* file, int line)
+{
+	printf("%s\n", w);
+}
+
+#define LUA_THROW_EXCEPTION(w) print_lua_error_info(w,__FILE__,__LINE__)
+#endif

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "LuaCommon.h"
-#include "MemPool.h"
 #include "LuaObject.h"
 #include "LuaTable.h"
 #include "LuaException.h"
