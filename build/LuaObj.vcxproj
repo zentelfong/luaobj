@@ -163,8 +163,7 @@
     <ClInclude Include="..\luaobj\LuaState.h" />
     <ClInclude Include="..\luaobj\LuaTable.h" />
     <ClInclude Include="..\luaobj\Luaobj.h" />
-    <ClInclude Include="..\luaobj\MemPool.h" />
-    <ClInclude Include="..\luaobj\Utf.h" />
+    <ClInclude Include="..\luaobj\LuaUtf.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\luaobj\LuaFunction.cpp" />
@@ -172,7 +171,7 @@
     <ClCompile Include="..\luaobj\LuaObjectImpl.cpp" />
     <ClCompile Include="..\luaobj\LuaState.cpp" />
     <ClCompile Include="..\luaobj\LuaTable.cpp" />
-    <ClCompile Include="..\luaobj\Utf.cpp" />
+    <ClCompile Include="..\luaobj\LuaUtf.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
