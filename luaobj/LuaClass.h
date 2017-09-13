@@ -16,14 +16,15 @@ template <typename T> class LuaClass
 public:
 	typedef T this_t;
 
-	static T* instance()
-	{
-		return NULL;
-	}
-
+	//如果子类未实现则调用该实现
 	void ctor(LuaFuncState&)
 	{
 		pThis = new this_t();
+	}
+
+	static T* instance()
+	{
+		return NULL;
 	}
 
 	void dtor()
@@ -49,13 +50,13 @@ public:
 		return NULL;
 	}
 
+
 	static LuaObject toLua(LuaState* L, T* obj)
 	{
 		if(!obj)
 			return L->newNil();
 
 		LuaTable lCache=getObjCacheTable(L);
-
 		LuaObject lobj=lCache.getTable((void*)obj);
 		if (lobj.isUData())
 		{
@@ -65,6 +66,14 @@ public:
 				return lobj;
 			}
 			assert(ud->pThis==NULL);
+		}
+		else if (lobj.isTable())
+		{
+			LuaObject lud = LuaTable(lobj)["__ptr"];
+			LuaClass *ud = (LuaClass*)lud.toData();
+			if (ud && ud->pThis==obj)
+				return lobj;
+			assert(ud->pThis == NULL);
 		}
 
 		lobj=L->newData(sizeof(LuaClass));
@@ -83,7 +92,14 @@ public:
 		if (lobj.isUData())
 		{
 			LuaClass* ud=static_cast<LuaClass*>(lobj.toData());
-			ud->pThis=NULL;//lua中调用前会检测该指针
+			ud->pThis = NULL;//lua中调用前会检测该指针
+		}
+		else if (lobj.isTable())
+		{
+			LuaObject lud = LuaTable(lobj)["__ptr"];
+			LuaClass *ud = (LuaClass*)lud.toData();
+			if (ud)
+				ud->pThis = NULL;
 		}
 	}
 
@@ -453,31 +469,32 @@ private:
 	static int instance_T(lua_State *l) 
 	{
 		LuaFuncState L(l);
-		//设置到cache表中
-		LuaTable lcache=T::getObjCacheTable(&L);
+		
+		LuaTable lcache = T::getObjCacheTable(&L);
 		T::this_t* pThis = T::instance();
-		if(!pThis)
+		if (!pThis)
 			return 0;
 
-		LuaObject lud=lcache.getTable(pThis);
-		if(lud.isUData() || lud.isTable())
+		LuaObject lud = lcache.getTable(pThis);
+		if (lud.isUData() || lud.isTable())
 		{
 			return L.lreturn(lud);
 		}
 		else
 		{
 			LuaObject lud = L.newData(sizeof(T));
-			T *ud =static_cast<T*>(lud.toData());
+			T *ud = static_cast<T*>(lud.toData());
 			ud->pThis = pThis;
-			LuaTable lMeta=L.getField(T::className());
-			if(!lMeta.isTable())
+			LuaTable lMeta = L.getField(T::className());
+			if (!lMeta.isTable())
 			{
-				lMeta=L.newTable();
-				L.setField(T::className(),lMeta);
+				lMeta = L.newTable();
+				L.setField(T::className(), lMeta);
 			}
 			lud.setMetatable(lMeta);
 
-			lcache.setTable((void*)pThis,lud);
+			//设置到cache表中
+			lcache.setTable((void*)pThis, lud);
 			return L.lreturn(lud);
 		}
 	}
@@ -488,7 +505,7 @@ private:
 		LuaFuncState L(l);
 		if (L.arg(0).isUData())
 		{
-			T *ud =(T*)L.arg(0).toData();
+			T *ud = (T*)L.arg(0).toData();
 			if (ud->pThis)
 			{
 				ud->dtor();
