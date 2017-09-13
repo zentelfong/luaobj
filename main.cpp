@@ -193,7 +193,7 @@ public:
 		return 0;
 	}
 
-	BEGIN_MAP_FUNC(LTest,"cc.Test")
+	BEGIN_MAP_FUNC(LTest)
 		DECLARE_FUNC(test),
 	END_MAP_FUNC
 };
@@ -246,7 +246,7 @@ public:
 		return 0;
 	}
 
-	BEGIN_MAP_FUNC(LParent,"cc.Parent")
+	BEGIN_MAP_FUNC(LParent)
 		DECLARE_FUNC(test),
 		DECLARE_FUNC(test2),
 	END_MAP_FUNC
@@ -267,7 +267,7 @@ public:
 		delete pThis;
 	}
 
-	BEGIN_MAP_FUNC(LChild,"cc.Child")
+	BEGIN_MAP_FUNC(LChild)
 		DECLARE_FUNC(test2),
 	END_MAP_FUNC
 };
@@ -296,9 +296,9 @@ class LStaticClass :public LuaClass<StaticClass>
 {
 public:
 
-	void instance(LuaFuncState& L)
+	static StaticClass* instance()
 	{
-		pThis=StaticClass::Instance();
+		return StaticClass::Instance();
 	}
 
 	int test(LuaFuncState& L)
@@ -308,7 +308,7 @@ public:
 	}
 
 
-	BEGIN_MAP_FUNC(LStaticClass,"cc.Static")
+	BEGIN_MAP_FUNC(LStaticClass)
 		DECLARE_FUNC(test),
 	END_MAP_FUNC
 };
@@ -334,8 +334,8 @@ int test()
 	L->doString("local test=cc.Parent.new();test:test('test2');test:test2(cc.Test.new(222))");
 	L->doString("local test=cc.Child.new();test:test('test');test:test2('test3')");
 
-	L->doString("cc.Static.instance();");
-	L->doString("local test1=cc.Static.instance();test1:test('ddddd')");
+	L->doString("local s1=cc.Static.instance();local s2=cc.Static.instance();");
+	//L->doString("local test1=cc.Static.instance();test1:test('ddddd')");
 	return rtn;
 }
 

@@ -16,14 +16,14 @@ template <typename T> class LuaClass
 public:
 	typedef T this_t;
 
-	//如果子类未实现则调用该实现
+	static T* instance()
+	{
+		return NULL;
+	}
+
 	void ctor(LuaFuncState&)
 	{
 		pThis = new this_t();
-	}
-
-	void instance(LuaFuncState&)
-	{
 	}
 
 	void dtor()
@@ -453,32 +453,52 @@ private:
 	static int instance_T(lua_State *l) 
 	{
 		LuaFuncState L(l);
-		LuaObject lud = L.newData(sizeof(T));
-		T *ud =static_cast<T*>(lud.toData());
-		ud->pThis = NULL;  // store pointer to object in userdata
-		ud->instance(L);
-
-		LuaTable lMeta=L.getField(T::className());
-		if(!lMeta.isTable())
-		{
-			lMeta=L.newTable();
-			L.setField(T::className(),lMeta);
-		}
-		lud.setMetatable(lMeta);
-
 		//设置到cache表中
 		LuaTable lcache=T::getObjCacheTable(&L);
-		lcache.setTable((void*)ud->pThis,lud);
+		T::this_t* pThis = T::instance();
+		if(!pThis)
+			return 0;
 
-		return L.lreturn(lud);
+		LuaObject lud=lcache.getTable(pThis);
+		if(lud.isUData() || lud.isTable())
+		{
+			return L.lreturn(lud);
+		}
+		else
+		{
+			LuaObject lud = L.newData(sizeof(T));
+			T *ud =static_cast<T*>(lud.toData());
+			ud->pThis = pThis;
+			LuaTable lMeta=L.getField(T::className());
+			if(!lMeta.isTable())
+			{
+				lMeta=L.newTable();
+				L.setField(T::className(),lMeta);
+			}
+			lud.setMetatable(lMeta);
+
+			lcache.setTable((void*)pThis,lud);
+			return L.lreturn(lud);
+		}
 	}
 
 	// garbage collection metamethod
-	static int gc_T(lua_State *L) 
+	static int gc_T(lua_State *l) 
 	{
-		T *ud = static_cast<T*>(lua_touserdata(L, 1));
-		if (ud)
+		LuaFuncState L(l);
+		if (L.arg(0).isUData())
 		{
+			T *ud =(T*)L.arg(0).toData();
+			if (ud->pThis)
+			{
+				ud->dtor();
+				ud->pThis = NULL;
+			}
+		}
+		else if (L.arg(0).isTable())
+		{
+			LuaObject lud = LuaTable(L.arg(0)).getTable("__ptr");
+			T *ud = (T*)lud.toData();
 			if (ud->pThis)
 			{
 				ud->dtor();
